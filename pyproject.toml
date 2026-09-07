@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "xenopus"
-version = "1.0.0.dev0"
+version = "1.0.0.dev1"
 description = "Xenopus — self-improving autonomous AI agent runtime (local-first, verifiable, model-agnostic)."
 readme = "README.md"
 license = { text = "MIT" }
@@ -19,7 +19,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# Runtime dependencies: none in Phase 1 — stdlib-first principle (ADR-002).
+# Runtime dependencies: none — stdlib-first principle (ADR-002).
 dependencies = []
 
 [project.scripts]
@@ -30,6 +30,7 @@ dev = [
   "pytest>=9.1.1",
   "ruff>=0.16.6",
   "mypy>=2.3.1",
+  "hypothesis>=6.130.0",
 ]
 
 [tool.hatch.build.targets.wheel]

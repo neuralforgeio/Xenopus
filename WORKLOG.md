@@ -1,77 +1,80 @@
 # WORKLOG — Xenopus
 
 ---
-Task ID: CORRECTIVE-REMEDIATION-ENGLISH
+Task ID: PHASE-2-AGENT-CORE
 Agent: opencode / z-ai glm-5.3-free
-Timestamp: 2026-09-07T16:00+07:00
-Version: 1.0.0.dev0 (internal; no tag/release — RELEASE BLOCKED for 1.0.0)
+Timestamp: 2026-09-07T17:30+07:00
+Version: 1.0.0.dev1 (internal; no tag/release)
 
 Discovery Profile:
 - Domain / Stack: Python 3.13.3 (venv), src-layout, hatchling
-- Maturity Level: Prototype (foundation complete; pre-alpha runtime)
+- Maturity Level: Prototype (runtime data plane shipping)
 - Native Commands: build=python -m build --wheel | test=pytest |
   lint=ruff check | fmt=ruff format | typecheck=mypy
-- AGENTS.md Present: no (new project; Protocol v9 is the baseline)
+- AGENTS.md Present: no (Protocol v9 is the baseline)
 
 Implementation Summary:
-- Scope: permanent English-only normalization of all project-authored
-  content (source docstrings/comments, CLI strings, tests, README, CHANGELOG,
-  ADRs, .plans, WORKLOG, pyproject comments, CI labels, .gitignore) +
-  GitHub metadata update + tag/release existence check + version wiring audit.
-- Architectural Decisions: none new (documentation-only task; D-06
-  language policy recorded)
+- Scope: agent FSM (20 states, table-driven legality, guards), goal
+  manager (validation + lifecycle + plan-binding gate), plan engine
+  (TaskNode DAG, acyclic validation, deterministic topo order), budget +
+  retry primitives, canonical event vocabulary v1, append-only SQLite WAL
+  journal, correlation ids; unit + Hypothesis property tests.
+- Architectural Decisions: ADR-003 (FSM as frozen data table), ADR-004
+  (append-only journal, rowid tiebreaker for deterministic replay)
 - Deviations From Plan: none
 
 Quality Gate Results (verbatim evidence):
-- Tests: "15 passed" (pytest 9.1.1 — assertions updated for English strings)
+- Tests: "71 passed in 5.43s" (pytest 9.1.1 + hypothesis 6.167.1)
 - Static Analysis: "All checks passed!" (ruff 0.16.6)
-- Format: "27 files already formatted" (ruff format)
-- Typing: "Success: no issues found in 16 source files" (mypy 2.3.1 strict)
-- Build: "Successfully built xenopus-1.0.0.dev0-py3-none-any.whl"
-- Secret Scan: clean (pattern scan over source + history)
-- Language Audit: PASS — zero project-authored Indonesian content remains
+- Format: "41 files already formatted"
+- Typing: "Success: no issues found in 29 source files" (mypy 2.3.1 strict)
+- Build: "Successfully built xenopus-1.0.0.dev1-py3-none-any.whl"
+- Dependency integrity: "No broken requirements found."
+- Remediations used: 3 attempts total across the phase (Budget
+  future-annotations; test fixes; journal row-index + ordering) — all
+  root-caused with 5-Whys before editing.
 
 Risk Assessment Post-Implementation:
-- Backward Compatibility: n/a (no external consumers; CLI doctor strings
-  changed Indonesian → English, documented in CHANGELOG)
-- Data Integrity: no impact (documentation + string constants only)
-- Security Surface: unchanged
+- Backward Compatibility: maintained (additive only; no existing
+  contract changed)
+- Data Integrity: journal append-only; no destructive paths
+- Security Surface: unchanged (no network, no exec, no secrets)
 
 Release Artifacts:
-- Commit SHA(s): dad927e (remediation commit, pushed & verified:
-  git ls-remote HEAD == dad927e; CI run 34105475867 completed success)
-- Tag: NONE (v1.0.0 does not exist locally or remotely — verified)
-- Release: NONE — RELEASE BLOCKED (Section 29): runtime is pre-alpha;
-  Section 59 checklist not satisfied (agent runtime features unimplemented).
-  First public release remains 1.0.0 at Phase 19.
-- Verification Method: git ls-remote origin (HEAD match); gh release list
-  (empty); gh api repos/... (description/topics/license verified);
-  gh run list (CI success)
+- Commit SHA(s): recorded post-commit below
+- Tag: NONE (dev snapshot; first public release remains 1.0.0 @ Phase 19)
+- Release: NONE
+- Verification Method: git ls-remote origin (HEAD match), gh run list (CI)
 - Partial-Failure Recovery: none needed
 
 Cognitive Trace:
 - Plan Revisions: 0
-- Adversarial Findings in Step 13: 1 — CLI string changes could break
-  tests; mitigated by updating assertions and full gate re-run
-- Triad Confidence at Completion: 3/3 (all claims backed by quoted output)
+- Adversarial Findings: 2 in-session (corrupted plan.py skeleton caught
+  before gates; duplicate assert line caught during lint remediation)
+- Triad Confidence at Completion: 3/3
 - Assumptions That Proved Wrong: 0
 - Deviations From Protocol: none
 
-Technical Debt Incurred: none
+Technical Debt Incurred:
+- none new (journal retention policy is planned Phase 6 scope, not debt)
 
-Follow-up Tasks: Phase 2 (awaiting "LANJUT PHASE 2")
+Follow-up Tasks: Phase 3 (provider layer, context, sessions) — awaiting
+authorization "LANJUT PHASE 3"
 
 Blast Radius Final:
-- Direct Files Changed: 24 files (documentation + string constants)
-- Behaviorally Affected Modules: xenopus.cli (output strings), tests
-- Rollback Time (verified): < 5 minutes (git revert of one commit)
+- Direct Files Changed: ~18 files (new runtime + persistence + tests + docs)
+- Behaviorally Affected Modules: runtime/*, persistence/* (all new)
+- Rollback Time (verified): < 5 minutes (single additive commit)
 
-Next Recommended Action: authorize Phase 2 (Agent FSM, Goal, Plan DAG,
-event journal, correlationId, Hypothesis property tests).
+Next Recommended Action: review Phase 2 output, then authorize Phase 3.
 
 ---
-Task ID: PHASE-1-FOUNDATION (historical entry, 2026-09-07T14:45+07:00)
-Agent: opencode / z-ai glm-5.3-free
+Task ID: CORRECTIVE-REMEDIATION-ENGLISH (historical, 2026-09-07T16:00+07:00)
+Summary: English-only normalization complete. Commits dad927e + badf7ce
+pushed & verified; CI green (run 34105475867); language audit PASS;
+RELEASE BLOCKED for v1.0.0 (pre-alpha, by policy).
+
+---
+Task ID: PHASE-1-FOUNDATION (historical, 2026-09-07T14:45+07:00)
 Summary: Foundation complete — scaffold, toolchain, governance, CI.
-Commits 2ec4914 + 46706d7 pushed and verified; CI green (run 34096993427).
-Full original entry preserved in git history at commit 46706d7.
+Commits 2ec4914 + 46706d7 pushed and verified; CI green.

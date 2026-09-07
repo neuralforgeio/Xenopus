@@ -48,7 +48,11 @@ available**.
 | Repository foundation, toolchain, CI | IMPLEMENTED |
 | Local-first configuration (`~/.xenopus/`, `XENOPUS_HOME`) | IMPLEMENTED |
 | Idempotent state bootstrap + `xenopus doctor` CLI | IMPLEMENTED |
-| Agent FSM · Goal · Plan (DAG) | PLANNED (Phase 2) |
+| Agent FSM (20 states, legal-transition table) | IMPLEMENTED (Phase 2) |
+| Goal manager (validation, lifecycle, plan-binding gate) | IMPLEMENTED (Phase 2) |
+| Plan engine (task DAG model, acyclic validation, topological order) | IMPLEMENTED (Phase 2) |
+| Append-only event journal (SQLite WAL, correlation IDs) | IMPLEMENTED (Phase 2) |
+| Budget & retry policy primitives | IMPLEMENTED (Phase 2) |
 | Provider layer · Context · Sessions | PLANNED (Phase 3) |
 | Tool Gateway · Permission · Risk · Verifier | PLANNED (Phase 4) |
 | Memory · Skills · Checkpoints · Observability | PLANNED (Phase 5) |
@@ -130,21 +134,31 @@ lacks a published GitHub Release.
 
 ## Testing
 
-15 tests currently cover package imports, configuration, bootstrap
-idempotency, and CLI behavior. The test strategy expands per phase
-(property/invariant tests arrive with the FSM in Phase 2).
+71 tests currently cover package imports, configuration, bootstrap
+idempotency, CLI behavior, the agent FSM (including Hypothesis property
+invariants — no illegal transition can exist outside the legal table),
+goal lifecycle rules, plan DAG validation (cycles, orphans, deterministic
+topological order), and the event journal (append order, correlation
+isolation, schema versioning).
 
 ## Project Structure
 
 ```
 src/xenopus/
-├── runtime/        # core agent runtime (FSM, Goal, Plan) — Phase 2
+├── runtime/        # core agent runtime — IMPLEMENTED (FSM, goal, plan, budget)
+│   ├── fsm.py      #   20-state FSM with data-driven legal transitions
+│   ├── goal.py     #   goal model + manager with plan-binding gate
+│   ├── plan.py     #   task DAG: TaskNode, Plan, acyclic validator
+│   ├── events.py   #   canonical event vocabulary (v1) + Event envelope
+│   └── budget.py   #   budget dimensions + bounded retry policy
+├── persistence/    # durable local state — IMPLEMENTED (event journal)
+│   └── journal.py  #   append-only SQLite WAL journal
 ├── gateway/        # multi-channel transport adapters — Phase 12+
 ├── tools/          # tool gateway: discovery, permission, risk — Phase 4
 ├── memory/         # provenance-based memory — Phase 5
 ├── skills/         # skill registry + lifecycle — Phase 5
 ├── provider/       # model provider abstraction + router — Phase 3
-├── observability/  # structured logs, metrics, traces — Phase 5
+├── observability/  # correlation IDs IMPLEMENTED; logs/metrics Phase 5
 ├── config.py       # local-first configuration
 ├── bootstrap.py    # idempotent state bootstrap
 └── cli.py          # CLI surface
@@ -157,7 +171,7 @@ src/xenopus/
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Foundation: scaffold, toolchain, CI, governance | ✅ complete |
-| 2 | Agent FSM · Goal · Plan (DAG) · event journal | not started |
+| 2 | Agent FSM · Goal · Plan (DAG) · event journal | ✅ complete |
 | 3 | Provider layer · Context · Session | not started |
 | 4 | Tool Gateway · Permission · Risk · Verifier | not started |
 | 5 | Memory · Skills · Checkpoint · Observability | not started |
@@ -172,7 +186,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev0`.
+- Development snapshot: `1.0.0.dev1`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

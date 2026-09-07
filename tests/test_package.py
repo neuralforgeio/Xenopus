@@ -8,12 +8,20 @@ MODULES = [
     "xenopus.bootstrap",
     "xenopus.cli",
     "xenopus.runtime",
+    "xenopus.runtime.budget",
+    "xenopus.runtime.events",
+    "xenopus.runtime.fsm",
+    "xenopus.runtime.goal",
+    "xenopus.runtime.plan",
+    "xenopus.persistence",
+    "xenopus.persistence.journal",
     "xenopus.gateway",
     "xenopus.tools",
     "xenopus.memory",
     "xenopus.skills",
     "xenopus.provider",
     "xenopus.observability",
+    "xenopus.observability.correlation",
 ]
 
 

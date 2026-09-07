@@ -28,14 +28,16 @@ Implementation Summary:
   reversal criteria; not a deviation, a recorded design consequence.
 
 Quality Gate Results (verbatim evidence):
-- Tests: "172 passed in 14.61s" (run twice consecutively; one earlier
-  non-reproducible hypothesis flake documented in agent_log)
-- Static Analysis: "All checks passed!" (ruff 0.16.6)
-- Format: "74 files left unchanged" (ruff format stable)
-- Typing: "Success: no issues found in 57 source files" (mypy strict)
+- Tests: "172 passed in 8.67s" (post-fix local)
+- Static Analysis: exit 0 — "All checks passed!" (ruff 0.16.6)
+- Format: exit 0 — "77 files already formatted"
+- Typing: exit 0 — "Success: no issues found in 57 source files" (mypy strict)
 - Build: "Successfully built xenopus-1.0.0.dev3-py3-none-any.whl"
 - Dependency integrity: "No broken requirements found."
 - Secret scan: PASS (pre-commit)
+- CI: first run 34128091026 FAILED on 3 lint findings (unused var,
+  unescaped test regex, S105 on verdict label); remediated in commit
+  babe919; run 34129561616 completed success
 
 Risk Assessment Post-Implementation:
 - Backward Compatibility: maintained (additive modules; events extended
@@ -46,7 +48,8 @@ Risk Assessment Post-Implementation:
   tests
 
 Release Artifacts:
-- Commit SHA(s): recorded post-commit below
+- Commit SHA(s): 698a63a (Phase 4) + babe919 (CI lint fix) — pushed &
+  verified: git ls-remote HEAD == babe919; CI run 34129561616 success
 - Tag: NONE (dev snapshot; first public release remains 1.0.0 @ Phase 19)
 - Release: NONE
 - Verification Method: git ls-remote origin (HEAD match), gh run list (CI)
@@ -55,10 +58,14 @@ Release Artifacts:
 Cognitive Trace:
 - Plan Revisions: 0
 - Adversarial Findings: 3 red-zone catches in-session (garbage line,
-  dead-code branch, dropped test entries) — all fixed before gates
+  dead-code branch, dropped test entries) + 1 CI failure root-caused
+  (misread --fix output; exit-code discipline adopted)
 - Triad Confidence at Completion: 3/3
 - Assumptions That Proved Wrong: 0
 - Deviations From Protocol: none
+- Miscalibrations: "ruff check --fix output eyeballed instead of
+  exit-code checked" — future behavior changed: ALL gates verified by
+  exit code before every commit (Protocol v9 8.10)
 
 Technical Debt Incurred: none new
 

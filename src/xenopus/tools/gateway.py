@@ -113,7 +113,6 @@ class ToolGateway:
         )
         risk_outcome = self._risk.evaluate(factors, contract.risk)
 
-        approval_request_id: str | None = None
         if permission is PermissionDecision.ASK or risk_outcome is RiskOutcome.APPROVAL:
             if risk_outcome is RiskOutcome.DENY:
                 return ToolResult.failure(
@@ -150,7 +149,6 @@ class ToolGateway:
                 )
             except Exception as err:
                 return ToolResult.failure("approval_invalid", str(err))
-            approval_request_id = approval_id
 
         if risk_outcome is RiskOutcome.DENY:
             return ToolResult.failure("risk_denied", f"{contract.name!r} exceeds the risk budget")

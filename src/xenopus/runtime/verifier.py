@@ -18,7 +18,7 @@ from xenopus.runtime.observer import Observation
 class Verdict(StrEnum):
     """Evaluation outcomes; only PASS permits completion claims."""
 
-    PASS = "PASS"
+    PASS = "PASS"  # noqa: S105 — verdict label, not a credential
     FAIL = "FAIL"
     UNCERTAIN = "UNCERTAIN"
 

@@ -45,7 +45,7 @@ class TestPermissionEngine:
 
     def test_check_raises_on_deny(self) -> None:
         engine = PermissionEngine()
-        with pytest.raises(PermissionDeniedError, match="files.read"):
+        with pytest.raises(PermissionDeniedError, match=r"files\.read"):
             engine.check(request())
 
     def test_rule_field_mismatch_does_not_apply(self) -> None:

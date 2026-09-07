@@ -45,7 +45,8 @@ Risk Assessment Post-Implementation:
   env inside the adapter; never logged
 
 Release Artifacts:
-- Commit SHA(s): recorded post-commit below
+- Commit SHA(s): 176a922 (Phase 3 commit, pushed & verified:
+  git ls-remote HEAD == 176a922; CI run 34120583741 completed success)
 - Tag: NONE (dev snapshot; first public release remains 1.0.0 @ Phase 19)
 - Release: NONE
 - Verification Method: git ls-remote origin (HEAD match), gh run list (CI)

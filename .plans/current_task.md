@@ -1,53 +1,37 @@
-# Current Task — Phase 2: Agent Core (FSM · Goal · Plan DAG · Event Journal)
+# Current Task — Phase 3: Provider Layer · Context Engine · Sessions
 
 ## Objective
-Ship the runtime data plane: agent FSM with mechanical legality, goal
-model with plan-binding gate, task DAG with acyclic validation, budget
-primitives, canonical event vocabulary, and an append-only SQLite journal
-with correlation ids — all property-tested.
+Ship the model provider seam (protocol, echo, OpenAI-compatible adapter,
+registry, health, router), the budgeted context engine, and the session
+store with fork lineage — offline-testable end to end.
 
 ## Scope
-- `runtime/budget.py` (Budget, RetryPolicy), `runtime/events.py` (v1
-  vocabulary), `runtime/fsm.py` (20 states, table), `runtime/goal.py`,
-  `runtime/plan.py` (TaskNode/Plan/PlanEngine), `persistence/journal.py`,
-  `observability/correlation.py`
-- Tests: unit + Hypothesis property invariants for each
-- ADR-003 (FSM table), ADR-004 (journal), README/CHANGELOG updates
+- provider/{types,protocol,echo,openai_compat,registry,health,router}.py
+- runtime/context.py, persistence/sessions.py, events v2
+- Tests incl. MockTransport HTTP paths + property invariants
+- ADR-005/006/007, README/CHANGELOG updates, version 1.0.0.dev2
 
 ## Non-Goals
-No executor/tool execution (Phase 4+), no provider calls (Phase 3), no
-memory/skills (Phase 5), no TUI/Web (10+), no scheduler (9), no
-parallel execution (7 — data plane only).
+No tool execution (Phase 4), memory/skills (5), durable task runtime (6),
+TUI/Web (10+), no live network calls anywhere in tests.
 
 ## Baseline Snapshot
-- Pre-phase HEAD: badf7ce (remote == local, verified)
-- Tests: 15 passed (Phase 1 exit) → target > 15
-- Version: 1.0.0.dev0 → 1.0.0.dev1
+- Pre-phase HEAD: 43f2f5b (remote == local, verified)
+- Tests: 71 passed (Phase 2 exit) -> 126 target
+- Version: 1.0.0.dev1 -> 1.0.0.dev2
 
 ## Impact Radius
-Additive only: no existing behavior touched except MODULES test list and
-subpackage docstrings. Consumers: future phases only.
-
-## Contract Stability
-New public contracts (AgentFSM, GoalManager, PlanEngine, EventJournal).
-Freezing them now; breaking changes require MAJOR per policy.
+Additive. First runtime dependency added (httpx) — governed (ADR-005).
 
 ## Test Strategy
-Unit per component + property invariants (FSM table exhaustive, random
-walks, goal determinism, DAG validation, journal order preservation).
+Unit + async (pytest-asyncio, MockTransport) + Hypothesis property
+(context budget invariants). Determinism tests for router/health.
 
 ## Rollback Strategy
-`git revert <phase2-commit>` — additive change, < 5 minutes.
-
-## Risk Assessment
-- [E] Hypothesis 6.167.1 (MPL-2.0) compatible with 3.13 (PyPI verified)
-- [I] SQLite WAL sufficient at current scale — validated by Phase 18 bench
-
-## Abortion Criteria
-Secret found; CI failure unresolved after 3 remediation attempts.
+git revert of the phase commit; < 5 min; no data migrations.
 
 ## Release Strategy Preview
-Internal snapshot 1.0.0.dev1 — no tag, no release. First public: 1.0.0.
+Internal snapshot 1.0.0.dev2 — no tag/release.
 
 ## Knowledge Artifacts
-ADR-003, ADR-004, README (status/structure), CHANGELOG, WORKLOG entry.
+ADR-005, ADR-006, ADR-007; README provider/testing sections; CHANGELOG.

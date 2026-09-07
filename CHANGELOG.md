@@ -8,6 +8,38 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev2]
+
+### Added
+- Provider layer (ADR-005): `ModelProvider` protocol as the single seam
+  between runtime and models; offline `EchoProvider` (local-first
+  default — zero keys, zero network); hardened OpenAI-compatible HTTP
+  adapter for any /chat/completions endpoint with mandatory timeouts,
+  injected-only API keys (never read from the environment inside the
+  adapter), and strict response validation (401/403 -> permanent
+  AuthError, 429 -> RateLimitError honoring Retry-After, 5xx/network ->
+  ProviderUnavailableError, malformed 200 -> SchemaError).
+- Provider capability registry (explicit registration, no ambient
+  discovery) and `ModelCapability` descriptors with cost/context/tags.
+- Circuit-breaker health tracking (healthy / rate-limited / unavailable /
+  cooldown) with injected monotonic clock, Retry-After support, and lazy
+  self-healing cooldown expiry.
+- Deterministic model router: quality/cost/latency/local/privacy-first
+  policies over health-filtered candidates; same inputs always produce
+  the same order.
+- Context engine (ADR-007): budgeted assembly where protected segments
+  (system, goal, constraints) are never dropped — exceeding budget with
+  protected content fails loudly; droppable history fills newest-first;
+  `wrap_untrusted` content boundaries for tool/web output.
+- Session store (ADR-006): persistent SQLite sessions with fork lineage
+  (forks copy parent turns), title search, immutable archived sessions,
+  and per-turn usage accounting in integer micro-USD (no float money).
+- Event vocabulary extended additively to v2: SESSION_CREATED,
+  SESSION_FORKED, SESSION_ARCHIVED.
+- First runtime dependency: httpx 0.28.1 (BSD-3-Clause), governed per
+  Protocol v9 Section 9. All provider HTTP tests run on MockTransport —
+  the suite never touches the network.
+
 ## [Unreleased — 1.0.0.dev1]
 
 ### Added

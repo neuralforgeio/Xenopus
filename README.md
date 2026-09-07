@@ -53,7 +53,12 @@ available**.
 | Plan engine (task DAG model, acyclic validation, topological order) | IMPLEMENTED (Phase 2) |
 | Append-only event journal (SQLite WAL, correlation IDs) | IMPLEMENTED (Phase 2) |
 | Budget & retry policy primitives | IMPLEMENTED (Phase 2) |
-| Provider layer · Context · Sessions | PLANNED (Phase 3) |
+| Provider protocol + offline echo provider (local-first default) | IMPLEMENTED (Phase 3) |
+| OpenAI-compatible HTTP adapter (timeout-enforced, schema-validated) | IMPLEMENTED (Phase 3) |
+| Provider capability registry + circuit-breaker health tracking | IMPLEMENTED (Phase 3) |
+| Deterministic policy router (quality/cost/latency/local/privacy) | IMPLEMENTED (Phase 3) |
+| Context engine (budgeted assembly, protected segments, untrusted-content boundaries) | IMPLEMENTED (Phase 3) |
+| Session store (persistent, fork lineage, search, archive, usage accounting) | IMPLEMENTED (Phase 3) |
 | Tool Gateway · Permission · Risk · Verifier | PLANNED (Phase 4) |
 | Memory · Skills · Checkpoints · Observability | PLANNED (Phase 5) |
 | Durable task runtime · Remote control | PLANNED (Phase 6) |
@@ -100,9 +105,14 @@ guardrails. Status: PLANNED (phases 4+); see the [ADR series](.adr/).
 
 ## Providers
 
-Model providers (OpenAI-compatible endpoints and others) connect through a
-provider-agnostic abstraction with routing and fallback. Status: PLANNED
-(Phase 3). The core never imports provider-specific code.
+The provider layer is provider-agnostic ([ADR-005](.adr/005-provider-layer.md)):
+any OpenAI-compatible endpoint (OpenAI, OpenRouter, z.ai, LM Studio,
+llama.cpp, Ollama, vLLM) works through one hardened adapter with
+mandatory timeouts and strict response validation, plus an offline
+`echo` provider that makes the runtime usable with zero keys and zero
+network. Status: adapter, capability registry, circuit-breaker health
+tracking, and the deterministic policy router (quality/cost/latency/
+local/privacy-first) — IMPLEMENTED (Phase 3).
 
 ## Installation
 
@@ -134,25 +144,36 @@ lacks a published GitHub Release.
 
 ## Testing
 
-71 tests currently cover package imports, configuration, bootstrap
-idempotency, CLI behavior, the agent FSM (including Hypothesis property
-invariants — no illegal transition can exist outside the legal table),
-goal lifecycle rules, plan DAG validation (cycles, orphans, deterministic
-topological order), and the event journal (append order, correlation
-isolation, schema versioning).
+126 tests cover package imports, configuration, bootstrap, CLI, the
+agent FSM (Hypothesis property invariants — no illegal transition can
+exist outside the legal table), goal lifecycle, plan DAG validation,
+the event journal, budget/retry primitives, the provider stack
+(mock-transport HTTP tests: auth/rate-limit/unavailable/schema paths —
+no network), registry/health/router determinism, the context engine
+(property-tested budget invariants), and the session store (fork
+lineage, archive immutability, usage accounting).
 
 ## Project Structure
 
 ```
 src/xenopus/
-├── runtime/        # core agent runtime — IMPLEMENTED (FSM, goal, plan, budget)
+├── runtime/        # core agent runtime — IMPLEMENTED (FSM, goal, plan, budget, context)
 │   ├── fsm.py      #   20-state FSM with data-driven legal transitions
 │   ├── goal.py     #   goal model + manager with plan-binding gate
 │   ├── plan.py     #   task DAG: TaskNode, Plan, acyclic validator
-│   ├── events.py   #   canonical event vocabulary (v1) + Event envelope
+│   ├── context.py  #   budgeted context assembly + untrusted-content boundaries
+│   ├── events.py   #   canonical event vocabulary (v2) + Event envelope
 │   └── budget.py   #   budget dimensions + bounded retry policy
-├── persistence/    # durable local state — IMPLEMENTED (event journal)
-│   └── journal.py  #   append-only SQLite WAL journal
+├── persistence/    # durable local state — IMPLEMENTED
+│   ├── journal.py  #   append-only SQLite WAL event journal
+│   └── sessions.py #   session store with fork lineage + usage accounting
+├── provider/       # model provider layer — IMPLEMENTED (ADR-005)
+│   ├── protocol.py     #   ModelProvider protocol (the single seam)
+│   ├── echo.py         #   offline local-first reference provider
+│   ├── openai_compat.py#   hardened OpenAI-compatible HTTP adapter
+│   ├── registry.py     #   capability catalog
+│   ├── health.py       #   circuit-breaker health tracking
+│   └── router.py       #   deterministic policy router
 ├── gateway/        # multi-channel transport adapters — Phase 12+
 ├── tools/          # tool gateway: discovery, permission, risk — Phase 4
 ├── memory/         # provenance-based memory — Phase 5
@@ -172,7 +193,7 @@ src/xenopus/
 |---|---|---|
 | 1 | Foundation: scaffold, toolchain, CI, governance | ✅ complete |
 | 2 | Agent FSM · Goal · Plan (DAG) · event journal | ✅ complete |
-| 3 | Provider layer · Context · Session | not started |
+| 3 | Provider layer · Context · Session | ✅ complete |
 | 4 | Tool Gateway · Permission · Risk · Verifier | not started |
 | 5 | Memory · Skills · Checkpoint · Observability | not started |
 | 6 | Durable task runtime · remote control | not started |
@@ -186,7 +207,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev1`.
+- Development snapshot: `1.0.0.dev2`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

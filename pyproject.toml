@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "xenopus"
-version = "1.0.0.dev1"
+version = "1.0.0.dev2"
 description = "Xenopus — self-improving autonomous AI agent runtime (local-first, verifiable, model-agnostic)."
 readme = "README.md"
 license = { text = "MIT" }
@@ -19,8 +19,11 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# Runtime dependencies: none — stdlib-first principle (ADR-002).
-dependencies = []
+# Runtime dependencies: httpx only — the provider layer needs a hardened
+# async HTTP client with timeout/cancel support (ADR-005). stdlib-first
+# elsewhere (ADR-002). httpx transitive deps: httpcore, anyio, certifi,
+# idna, sniffio, h11, typing-extensions — all permissive-licensed.
+dependencies = ["httpx>=0.28.1"]
 
 [project.scripts]
 xenopus = "xenopus.cli:main"
@@ -31,6 +34,7 @@ dev = [
   "ruff>=0.16.6",
   "mypy>=2.3.1",
   "hypothesis>=6.130.0",
+  "pytest-asyncio>=1.4.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -39,6 +43,7 @@ packages = ["src/xenopus"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers --strict-config"
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100

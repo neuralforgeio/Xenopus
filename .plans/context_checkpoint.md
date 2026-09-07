@@ -1,41 +1,38 @@
-# Context Checkpoint — Phase 2 Complete
+# Context Checkpoint — Phase 3 Complete
 
 ```yaml
-Task ID: PHASE-2-AGENT-CORE
+Task ID: PHASE-3-PROVIDER-CONTEXT-SESSIONS
 Current FSM State: S11 PERSISTING (heading to STOP)
 Workflow Step: 11-12 (knowledge management + persistence)
 Files Modified:
-  - pyproject.toml (version -> 1.0.0.dev1; hypothesis added to dev group)
-  - src/xenopus/runtime/{__init__,budget,events,fsm,goal,plan}.py (new)
-  - src/xenopus/persistence/{__init__,journal}.py (new subpackage)
-  - src/xenopus/observability/correlation.py (new)
-  - tests/{test_budget,test_fsm,test_goal,test_plan,test_journal}.py (new)
+  - pyproject.toml (version 1.0.0.dev2; httpx runtime dep; pytest-asyncio dev; asyncio_mode=auto)
+  - src/xenopus/provider/{__init__,types,protocol,echo,openai_compat,registry,health,router}.py (new)
+  - src/xenopus/runtime/context.py (new); runtime/events.py (v2: +3 session events)
+  - src/xenopus/persistence/sessions.py (new)
+  - tests/{test_echo_provider,test_openai_compat,test_router,test_context,test_sessions}.py (new)
   - tests/test_package.py (MODULES extended)
-  - .adr/003-agent-fsm.md, .adr/004-event-journal.md (new)
-  - README.md, CHANGELOG.md, .plans/*
+  - .adr/005,006,007 (new); README, CHANGELOG, .plans/*
 Baseline Snapshot:
-  pre-phase commit: badf7ce (remote == local verified)
-  tests: 71 passed / 0 failed (was 15)
-  lint: "All checks passed!" (ruff)
-  format: "41 files already formatted"
-  typecheck: "Success: no issues found in 29 source files" (mypy strict)
-  build: "Successfully built xenopus-1.0.0.dev1-py3-none-any.whl"
+  pre-phase commit: 43f2f5b (remote == local verified)
+  tests: 126 passed / 0 failed (was 71)
+  lint: "All checks passed!"; format: "57 files already formatted"
+  typecheck: "Success: no issues found in 43 source files"
+  build: "Successfully built xenopus-1.0.0.dev2-py3-none-any.whl"
   pip check: "No broken requirements found."
 Decision Ledger:
-  - ADR-003: FSM legality as frozen data table + property pin
-  - ADR-004: SQLite WAL append-only journal, rowid tiebreaker
+  - ADR-005: httpx as first governed runtime dep; protocol seam; MockTransport tests
+  - ADR-006: SQLite sessions w/ fork-copies-turns; integer micro-USD
+  - ADR-007: protected context segments; loud failure over silent truncation
 Evidence Anchors:
-  - pytest: "71 passed in 5.43s"
-  - ruff: "All checks passed!"
-  - mypy: "Success: no issues found in 29 source files"
-Assumptions Open: #4-#9 unchanged; #10 (SQLite WAL scale) -> Phase 18
-Pending Actions: commit, push, remote verify, CI verify, final report
-Next Immediate Action: secret scan -> git hygiene -> commit -> push ->
-  verify remote HEAD == local, then gh run list for CI status.
+  - pytest: "126 passed in 6.15s"
+  - ruff: "All checks passed!"; mypy: "Success: no issues found in 43 source files"
+Assumptions Open: #4-#9 unchanged; char-per-token estimator revisit at Phase 13
+Pending Actions: secret scan, hygiene, commit, push, remote+CI verify, report
+Next Immediate Action: secret scan -> git add/commit -> push -> ls-remote ->
+  gh run list
 Blockers: none
-Release State: none (dev snapshot 1.0.0.dev1; no tag; first public = 1.0.0)
+Release State: none (dev snapshot 1.0.0.dev2; no tag; first public = 1.0.0)
 Known Issues:
-  - Journal growth needs a compaction/retention policy (planned Phase 6)
-  - Journal.append idempotency is per generated event_id; replay
-    semantics for retries arrive with the durable task runtime (Phase 6)
+  - Session title search is LIKE-only (FTS5 upgrade path documented in ADR-006)
+  - Tool-calling capability flags declared but unused until Phase 4
 ```

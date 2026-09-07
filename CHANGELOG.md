@@ -8,6 +8,45 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev3]
+
+### Added
+- Tool gateway (ADR-008): the single enforcement pipeline — permission ->
+  risk -> approval -> dispatch -> observe. Unregistered tools fail closed;
+  tool crashes convert to structured `tool_crash` results; no exception
+  crosses the gateway boundary.
+- Tool contracts: every tool declares name, schema, side effects,
+  required permissions, risk level, timeout, idempotency, and failure
+  modes; the registry refuses under-specified registrations.
+- Lazy tool registry with metadata-only search (permission/risk filters)
+  — planners consult catalogs without loading handlers.
+- File tools (read/write/list/delete) with a `PathPolicy` workspace
+  boundary: every path resolves inside the root; traversal attempts
+  (`../`, deep escapes) are rejected. The policy is gateway-injected
+  internal wiring, never derived from tool arguments.
+- Permission engine (ADR-009): ordered rules, first-match-wins, absolute
+  deny-by-default fallback (empty rule set denies everything — property
+  tested); ALLOW/ASK/DENY across subject/action/resource/tool dimensions.
+- Risk engine: deterministic weight table (destructiveness, external
+  effects, reversibility, sensitivity, blast radius) mapping to
+  AUTO/APPROVAL/DENY with an absolute row — destructive AND irreversible
+  is always DENY (property tested).
+- Approval requests (ADR-009): hash-bound to the exact action (tool +
+  canonical argument JSON + subject + correlation), expiring (default
+  5 minutes), single-grant semantics; resolve() rejects replay against
+  different actions, expired grants, and wrong subjects.
+- Executor (ADR-010): bounded retries with backoff; permanent error
+  codes never retry; every attempt journals TOOL_STARTED/COMPLETED/FAILED
+  and records an observation; gateway dispatch runs off the event loop.
+- Observer: raw evidence capture (tool, attempt, ok, error, data) —
+  observation is data, never interpretation.
+- Verifier: declarative checks evaluated over observations with
+  PASS/FAIL/UNCERTAIN where UNCERTAIN is never PASS; worst-first
+  aggregation; adversarial rechecks scan all attempts for hidden
+  failures behind retries.
+- Event vocabulary extended additively to v3: TOOL_REQUESTED,
+  TOOL_STARTED, TOOL_COMPLETED, TOOL_FAILED, TOOL_DENIED.
+
 ## [Unreleased — 1.0.0.dev2]
 
 ### Added

@@ -1,37 +1,38 @@
-# Current Task — Phase 3: Provider Layer · Context Engine · Sessions
+# Current Task — Phase 4: Tool Gateway · Permission · Risk · Executor · Observer · Verifier
 
 ## Objective
-Ship the model provider seam (protocol, echo, OpenAI-compatible adapter,
-registry, health, router), the budgeted context engine, and the session
-store with fork lineage — offline-testable end to end.
+Ship the enforcement spine: tool contracts + registry, path-bounded file
+tools, permission/risk/approval engines, the gateway pipeline, the
+bounded-retry executor with journaling, the observer, and the
+evidence-based verifier with adversarial rechecks.
 
 ## Scope
-- provider/{types,protocol,echo,openai_compat,registry,health,router}.py
-- runtime/context.py, persistence/sessions.py, events v2
-- Tests incl. MockTransport HTTP paths + property invariants
-- ADR-005/006/007, README/CHANGELOG updates, version 1.0.0.dev2
+- tools/{contracts,files,registry,gateway}.py
+- runtime/{permission,risk,approval,observer,executor,verifier}.py
+- events v3 (TOOL_* additive); tests incl. property invariants
+- ADR-008/009/010; README/CHANGELOG; version 1.0.0.dev3
 
 ## Non-Goals
-No tool execution (Phase 4), memory/skills (5), durable task runtime (6),
-TUI/Web (10+), no live network calls anywhere in tests.
+Memory/skills (Phase 5), durable task runtime/approval persistence (6),
+multi-agent (7-8), scheduler (9), channels (12+). file_delete DENY-by-
+table is intentional; recycle bin lands in Phase 6.
 
 ## Baseline Snapshot
-- Pre-phase HEAD: 43f2f5b (remote == local, verified)
-- Tests: 71 passed (Phase 2 exit) -> 126 target
-- Version: 1.0.0.dev1 -> 1.0.0.dev2
-
-## Impact Radius
-Additive. First runtime dependency added (httpx) — governed (ADR-005).
+- Pre-phase HEAD: 2a899c9 (remote == local verified)
+- Tests: 126 passed (Phase 3 exit) -> 172
+- Version: 1.0.0.dev2 -> 1.0.0.dev3
 
 ## Test Strategy
-Unit + async (pytest-asyncio, MockTransport) + Hypothesis property
-(context budget invariants). Determinism tests for router/health.
+Unit (permission rules, risk table, approvals incl. replay), file tools
+(traversal attacks), gateway pipeline (fail-closed matrix), executor
+(retry semantics + journaling), verifier (UNCERTAIN≠PASS, adversarial).
+Property: empty-ruleset always DENY; destructive+irreversible always DENY.
 
 ## Rollback Strategy
-git revert of the phase commit; < 5 min; no data migrations.
+git revert of the phase commit; additive; < 5 min.
 
 ## Release Strategy Preview
-Internal snapshot 1.0.0.dev2 — no tag/release.
+Internal snapshot 1.0.0.dev3 — no tag/release.
 
 ## Knowledge Artifacts
-ADR-005, ADR-006, ADR-007; README provider/testing sections; CHANGELOG.
+ADR-008, ADR-009, ADR-010; README security/testing; CHANGELOG.

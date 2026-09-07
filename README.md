@@ -59,7 +59,15 @@ available**.
 | Deterministic policy router (quality/cost/latency/local/privacy) | IMPLEMENTED (Phase 3) |
 | Context engine (budgeted assembly, protected segments, untrusted-content boundaries) | IMPLEMENTED (Phase 3) |
 | Session store (persistent, fork lineage, search, archive, usage accounting) | IMPLEMENTED (Phase 3) |
-| Tool Gateway · Permission · Risk · Verifier | PLANNED (Phase 4) |
+| Tool contracts + registry (lazy discovery, schema-enforced) | IMPLEMENTED (Phase 4) |
+| File tools with workspace path-boundary enforcement (traversal-proof) | IMPLEMENTED (Phase 4) |
+| Permission engine (rule-ordered, deny-by-default, ALLOW/ASK/DENY) | IMPLEMENTED (Phase 4) |
+| Risk engine (deterministic AUTO/APPROVAL/DENY decision table) | IMPLEMENTED (Phase 4) |
+| Approval requests (hash-bound, expiring, replay-proof) | IMPLEMENTED (Phase 4) |
+| Tool gateway pipeline (permission → risk → approval → execute → observe) | IMPLEMENTED (Phase 4) |
+| Executor (bounded retries, permanent-failure short-circuit, journaling) | IMPLEMENTED (Phase 4) |
+| Observer (raw evidence capture, never interpretation) | IMPLEMENTED (Phase 4) |
+| Verifier (PASS/FAIL/UNCERTAIN, UNCERTAIN ≠ PASS, adversarial rechecks) | IMPLEMENTED (Phase 4) |
 | Memory · Skills · Checkpoints · Observability | PLANNED (Phase 5) |
 | Durable task runtime · Remote control | PLANNED (Phase 6) |
 | Multi-agent orchestration · parallel agents | PLANNED (Phase 7-8) |
@@ -94,7 +102,10 @@ Deny-by-default permissions, risk-gated destructive actions, evidence-based
 memory/skill promotion (poisoning defense), secret redaction in logs, and
 sandboxed execution boundaries are foundational design rules — the runtime
 is being built so that autonomy is only ever exercised inside verifiable
-guardrails. Status: PLANNED (phases 4+); see the [ADR series](.adr/).
+guardrails. Status: permission engine, risk engine, replay-proof approvals,
+and the path-boundary-enforcing tool gateway are IMPLEMENTED (Phase 4,
+[ADR-008](.adr/008-tool-gateway.md)/[009](.adr/009-permission-risk.md));
+memory/skill governance arrives in Phase 5. See the [ADR series](.adr/).
 
 ## Local / Hybrid / Cloud
 
@@ -144,14 +155,16 @@ lacks a published GitHub Release.
 
 ## Testing
 
-126 tests cover package imports, configuration, bootstrap, CLI, the
-agent FSM (Hypothesis property invariants — no illegal transition can
-exist outside the legal table), goal lifecycle, plan DAG validation,
-the event journal, budget/retry primitives, the provider stack
-(mock-transport HTTP tests: auth/rate-limit/unavailable/schema paths —
-no network), registry/health/router determinism, the context engine
-(property-tested budget invariants), and the session store (fork
-lineage, archive immutability, usage accounting).
+172 tests cover package imports, configuration, bootstrap, CLI, the
+agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
+validation, the event journal, budget/retry primitives, the provider
+stack (mock-transport HTTP, no network), registry/health/router
+determinism, the context engine, the session store, the permission
+engine (deny-by-default property), the risk table (absolute-DENY
+property), replay-proof approvals, file tools (path traversal rejected),
+the full gateway pipeline, executor retry semantics, and the verifier
+(including adversarial rechecks that catch hidden failures behind
+retries).
 
 ## Project Structure
 
@@ -194,7 +207,7 @@ src/xenopus/
 | 1 | Foundation: scaffold, toolchain, CI, governance | ✅ complete |
 | 2 | Agent FSM · Goal · Plan (DAG) · event journal | ✅ complete |
 | 3 | Provider layer · Context · Session | ✅ complete |
-| 4 | Tool Gateway · Permission · Risk · Verifier | not started |
+| 4 | Tool Gateway · Permission · Risk · Verifier | ✅ complete |
 | 5 | Memory · Skills · Checkpoint · Observability | not started |
 | 6 | Durable task runtime · remote control | not started |
 | 7-8 | Orchestrator · agent pool · teams · aggregation | not started |
@@ -207,7 +220,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev2`.
+- Development snapshot: `1.0.0.dev3`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

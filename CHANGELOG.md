@@ -8,6 +8,42 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev4]
+
+### Added
+- Memory layer (ADR-011): 7-status lifecycle starting at CANDIDATE
+  (auto-trust structurally impossible), evidence-gated promotion
+  (evidence must reference an observation or journal correlation —
+  bare assertions are rejected at construction), scope isolation by
+  construction (GLOBAL/USER/WORKSPACE/PROJECT/TASK/TEMPORARY with
+  mandatory scoped queries), supersession where replacements always
+  re-enter as CANDIDATE, TTL expiry with injectable clock, reuse/
+  correction counters, and computed (never stored) quality scores;
+  persisted in a scoped SQLite store.
+- Skills layer (ADR-012): skill schemas (trigger, procedure,
+  constraints, failure modes, success criteria), the 7-stage lifecycle
+  with a legal-transition table, deterministic trust gates (>= 3
+  evaluations at >= 0.75 lifetime success for TRUSTED; >= 0.50 for
+  EXPERIMENTAL), post-trust regression detection (>= 2 post-trust
+  evaluations at <= 0.40 success rate triggers DEGRADED — judged on
+  behavior since trust, not lifetime averages), append-only evaluation
+  history, and a SQLite registry with duplicate-name protection.
+- Checkpoint manager (ADR-013): append-only per-correlation snapshots
+  (JSON-validated) with chronological listing and latest-anchor
+  queries — the durable substrate for Phase 6 crash recovery.
+- Structured logging (ADR-013): JSON-line records (UTC timestamp,
+  level, service, correlation id, message + extras) with mandatory
+  pre-sink secret redaction (token/key/PEM/key-value patterns and
+  sensitive-keyed dict values), level filtering, and never-raise sink
+  degradation.
+- Event vocabulary extended additively to v4: MEMORY_CREATED/PROMOTED/
+  DEGRADED/SUPERSEDED, SKILL_CREATED/PROMOTED/DEGRADED.
+- Private development control plane: engineering governance state
+  (task/assumption/checkpoint/agent logs, WORKLOG) moved out of the
+  public repository into the local-only `.plans/` directory (ignored
+  and untracked by Git; verified via git check-ignore and
+  git ls-files).
+
 ## [Unreleased — 1.0.0.dev3]
 
 ### Added

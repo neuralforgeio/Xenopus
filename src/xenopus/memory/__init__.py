@@ -1,5 +1,8 @@
 """Memory layer: working/episodic/semantic/procedural memory with provenance.
 
-Implementation phase: Phase 5. Every memory item starts as ``candidate``;
-promotion to active status requires evidence (memory-poisoning defense).
+Shipped in Phase 5 (ADR-011): memory types with a 7-status lifecycle,
+scope isolation (GLOBAL/USER/WORKSPACE/PROJECT/TASK/TEMPORARY),
+evidence-gated promotion (memory-poisoning defense — candidates never
+auto-trust), supersession, TTL expiry, and quality scoring; persisted
+in a scoped SQLite store.
 """

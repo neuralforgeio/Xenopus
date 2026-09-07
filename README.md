@@ -68,7 +68,10 @@ available**.
 | Executor (bounded retries, permanent-failure short-circuit, journaling) | IMPLEMENTED (Phase 4) |
 | Observer (raw evidence capture, never interpretation) | IMPLEMENTED (Phase 4) |
 | Verifier (PASS/FAIL/UNCERTAIN, UNCERTAIN ≠ PASS, adversarial rechecks) | IMPLEMENTED (Phase 4) |
-| Memory · Skills · Checkpoints · Observability | PLANNED (Phase 5) |
+| Memory (provenance, evidence-gated promotion, scope isolation, TTL, supersession) | IMPLEMENTED (Phase 5) |
+| Skills (7-stage lifecycle, deterministic trust gates, regression detection) | IMPLEMENTED (Phase 5) |
+| Checkpoints (append-only snapshots per correlation) | IMPLEMENTED (Phase 5) |
+| Structured logging with mandatory secret redaction | IMPLEMENTED (Phase 5) |
 | Durable task runtime · Remote control | PLANNED (Phase 6) |
 | Multi-agent orchestration · parallel agents | PLANNED (Phase 7-8) |
 | Scheduler · Notification routing | PLANNED (Phase 9) |
@@ -155,16 +158,19 @@ lacks a published GitHub Release.
 
 ## Testing
 
-172 tests cover package imports, configuration, bootstrap, CLI, the
+222 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
 determinism, the context engine, the session store, the permission
 engine (deny-by-default property), the risk table (absolute-DENY
-property), replay-proof approvals, file tools (path traversal rejected),
-the full gateway pipeline, executor retry semantics, and the verifier
-(including adversarial rechecks that catch hidden failures behind
-retries).
+property), replay-proof approvals, file tools (path traversal
+rejected), the full gateway pipeline, executor retry semantics, the
+verifier (adversarial rechecks), memory (promotion gate, scope
+isolation, supersession, TTL expiry, quality scoring), skills (full
+trust ladder, threshold refusals, post-trust regression detection),
+checkpoints, and the redacting structured logger (tokens never reach
+sinks).
 
 ## Project Structure
 
@@ -207,7 +213,7 @@ src/xenopus/
 | 2 | Agent FSM · Goal · Plan (DAG) · event journal | ✅ complete |
 | 3 | Provider layer · Context · Session | ✅ complete |
 | 4 | Tool Gateway · Permission · Risk · Verifier | ✅ complete |
-| 5 | Memory · Skills · Checkpoint · Observability | not started |
+| 5 | Memory · Skills · Checkpoint · Observability | ✅ complete |
 | 6 | Durable task runtime · remote control | not started |
 | 7-8 | Orchestrator · agent pool · teams · aggregation | not started |
 | 9 | Scheduler · notification router | not started |
@@ -219,7 +225,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev3`.
+- Development snapshot: `1.0.0.dev4`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

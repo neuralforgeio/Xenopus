@@ -8,6 +8,36 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev5]
+
+### Added
+- Durable task runtime (ADR-014): persisted task lifecycle
+  (QUEUED/RUNNING/WAITING/PAUSED/RESUMABLE/COMPLETED/FAILED/CANCELLED)
+  behind a legal-transition table (FAILED re-enters only via retry with
+  attempt bumps and budget checks; terminal states are closed), with
+  every transition journaled as TASK_* events under the task's
+  correlation id.
+- Remote-control CLI: `xenopus task create/list/inspect/start/pause/
+  resume/cancel/retry/recover` — a thin control surface over the
+  durable store (TUI/Web consume the same store in later phases).
+- Kill switch: `xenopus killswitch` cancels every live task and
+  journals KILLSWITCH_TRIGGERED (reason + affected ids) — state is
+  preserved for post-incident review, never deleted.
+- Crash recovery: startup pass flags RUNNING/WAITING tasks as RESUMABLE
+  with TASK_INTERRUPTED journal entries — recovery surfaces, it never
+  silently restarts work.
+- Persistent approval store (ADR-015): SQLite ledger with hash-bound
+  (tool + canonical arguments + subject + task id), expiring,
+  single-grant, replay-proof approvals; expiry sweep included. Approvals
+  now survive restarts mid-flow.
+- Recycle bin (ADR-015): workspace-local reversible deletes with origin
+  records, restore (overwrite-refusing), listing, and manual purge.
+  Per the ADR-008 reversal criteria, file_delete now routes APPROVAL
+  when a recycle bin is attached (destructive but reversible) and stays
+  DENY without one.
+- Event vocabulary extended additively to v5: TASK_INTERRUPTED,
+  KILLSWITCH_TRIGGERED.
+
 ## [Unreleased — 1.0.0.dev4]
 
 ### Added

@@ -66,12 +66,14 @@ class ToolGateway:
         risk: RiskEngine,
         approvals: ApprovalLedger,
         subject: str = "agent",
+        recycle_bin: object | None = None,
     ) -> None:
         self._registry = registry
         self._permissions = permissions
         self._risk = risk
         self._approvals = approvals
         self._subject = subject
+        self._recycle_bin = recycle_bin
 
     def invoke(
         self,
@@ -82,7 +84,12 @@ class ToolGateway:
         approval_id: str | None = None,
         path_policy: object | None = None,
     ) -> ToolResult:
-        """Run one invocation through the full pipeline (sync dispatch)."""
+        """Run one invocation through the full pipeline (sync dispatch).
+
+        When a recycle bin is attached, destructive file deletes are
+        reversible and route through the APPROVAL path (ADR-008
+        reversal); without one they stay DENY (destructive+irreversible).
+        """
         try:
             contract, handler = self._registry.get(tool)
         except Exception as err:
@@ -101,13 +108,14 @@ class ToolGateway:
                 f"{self._subject!r} lacks permission for {contract.name!r}",
             )
 
-        # Dynamic risk: destructive file tools declare destructive factors.
+        # Dynamic risk: destructive deletes are reversible when a recycle
+        # bin is attached (ADR-008); irreversible without one.
         destructive = "destructive" in contract.side_effects
+        reversible = not destructive or self._recycle_bin is not None
         factors = RiskFactors(
             destructiveness=destructive,
             external_side_effects=False,
-            reversible=not destructive,  # deletes inside a workspace are
-            # reversible only via external backup; treated irreversible.
+            reversible=reversible,
             sensitive_data=False,
             blast_radius=RiskLevel.LOW,
         )
@@ -156,6 +164,11 @@ class ToolGateway:
         wired_arguments = dict(arguments)
         if path_policy is not None and contract.name.startswith("file_"):
             wired_arguments["__path_policy__"] = path_policy
+        if contract.name == "file_delete" and self._recycle_bin is not None:
+            wired_arguments["__recycle_bin__"] = self._recycle_bin
+            from xenopus.tools.recycle import file_delete_recycle
+
+            handler = file_delete_recycle
 
         started = time.monotonic()
         try:
@@ -184,7 +197,7 @@ class ToolGateway:
         destructive = "destructive" in contract.side_effects
         factors = RiskFactors(
             destructiveness=destructive,
-            reversible=not destructive,
+            reversible=not destructive or self._recycle_bin is not None,
         )
         risk_outcome = self._risk.evaluate(factors, contract.risk)
         return GatewayDecision(

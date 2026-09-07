@@ -36,6 +36,11 @@ If Phase 6's recycle mechanism makes workspace deletes provably
 reversible, file_delete's factor wiring changes to APPROVAL — table
 change with tests in the same commit.
 
+> **AMENDED 2026-09-07 (Phase 6, ADR-015):** reversal criteria met.
+> With a RecycleBin attached, file_delete routes APPROVAL
+> (destructive-but-reversible); without one it stays DENY. Tests
+> updated in the same commit as required.
+
 ## Sunset Review
 Phase 6 (durable runtime + recycle), Phase 8 (tool reliability learning).
 

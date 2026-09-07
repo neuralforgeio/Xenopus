@@ -38,13 +38,15 @@ Risk Assessment Post-Implementation:
 - Security Surface: unchanged
 
 Release Artifacts:
-- Commit SHA(s): (recorded post-commit below)
+- Commit SHA(s): dad927e (remediation commit, pushed & verified:
+  git ls-remote HEAD == dad927e; CI run 34105475867 completed success)
 - Tag: NONE (v1.0.0 does not exist locally or remotely — verified)
 - Release: NONE — RELEASE BLOCKED (Section 29): runtime is pre-alpha;
   Section 59 checklist not satisfied (agent runtime features unimplemented).
   First public release remains 1.0.0 at Phase 19.
-- Verification Method: git ls-remote --tags origin (empty); gh release list
-  (empty); gh repo view (metadata); gh run list (CI)
+- Verification Method: git ls-remote origin (HEAD match); gh release list
+  (empty); gh api repos/... (description/topics/license verified);
+  gh run list (CI success)
 - Partial-Failure Recovery: none needed
 
 Cognitive Trace:

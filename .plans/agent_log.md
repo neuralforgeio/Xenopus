@@ -1,6 +1,0 @@
-[2026-09-07T20:05+07:00] [opencode/glm-5.3] [INFO] "LANJUT PHASE 4" authorized. Enforcement spine in scope: gateway, permission, risk, approvals, executor, observer, verifier.
-[2026-09-07T20:15+07:00] [opencode/glm-5.3] [INFO] Events extended additively to v3 (TOOL_*). Version -> 1.0.0.dev3.
-[2026-09-07T20:55+07:00] [opencode/glm-5.3] [WARN] Red-zone catches in-session: (1) garbage "ToolHandler = None" line written into gateway.py — removed; (2) dead-code raise branch in asyncio bridge — replaced with typed _materialize shim; (3) memory/skills accidentally dropped from the MODULES import test during edit — restored.
-[2026-09-07T21:05+07:00] [opencode/glm-5.3] [INFO] Remediations (root-caused): risk-table test score arithmetic (external+MEDIUM=3 < 4 threshold, needed sensitive factor); approval "already GRANTED" message vs stale "PENDING" regex.
-[2026-09-07T21:10+07:00] [opencode/glm-5.3] [INFO] One flaky hypothesis decode failure under the new async suite (test_append_order_preserved_for_any_sequence) — passed in isolation and in two consecutive full runs; non-reproducible, no code change warranted. Watching for recurrence.
-[2026-09-07T21:15+07:00] [opencode/glm-5.3] [INFO] ALL GATES GREEN x2 consecutive: 172 passed / ruff clean / format clean / mypy strict clean (57 files).

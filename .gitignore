@@ -1,3 +1,6 @@
+# Private development control plane (internal AI/dev workflow state — never public)
+.plans/
+
 # Python
 __pycache__/
 *.py[cod]

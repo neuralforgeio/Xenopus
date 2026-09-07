@@ -197,7 +197,6 @@ src/xenopus/
 ├── bootstrap.py    # idempotent state bootstrap
 └── cli.py          # CLI surface
 .adr/               # architecture decision records
-.plans/             # engineering governance artifacts
 ```
 
 ## Roadmap

@@ -1,11 +1,11 @@
-"""Guard paritas tag-rilis (Protocol v9 Section 17.9).
+"""Release tag parity guard (Protocol v9 Section 17.9).
 
-Memverifikasi bahwa setiap tag ``v*`` pada remote memiliki GitHub Release
-yang dipublikasikan. Keluar dengan kode 1 (gagal CI) bila ada tag tanpa
-rilis — memaksa paritas P7 sejak commit pertama.
+Verifies that every ``v*`` tag on the remote has a published GitHub
+Release. Exits with code 1 (CI failure) when a tag has no release,
+enforcing P7 parity from the very first commit.
 
-Tanpa argumen: memeriksa HEAD saja (mode lokal-prima).
-Dengan ``--check-remote``: memeriksa paritas tag-vs-rilis di remote via ``gh``.
+Without arguments: checks HEAD only (local-first mode).
+With ``--check-remote``: checks tag-vs-release parity on the remote via ``gh``.
 """
 
 import subprocess
@@ -14,36 +14,36 @@ from argparse import ArgumentParser
 
 
 def run(cmd: list[str]) -> str:
-    """Jalankan perintah, kembalikan stdout; gagal -> SystemExit dengan pesan."""
+    """Run a command, return stdout; failure -> SystemExit with a message."""
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
     except FileNotFoundError:
-        sys.exit(f"PERINTAH TIDAK ADA: {cmd[0]}")
+        sys.exit(f"COMMAND NOT FOUND: {cmd[0]}")
     except subprocess.CalledProcessError as err:
-        sys.exit(f"GAGAL: {' '.join(cmd)}\n{err.stderr.strip()}")
+        sys.exit(f"FAILED: {' '.join(cmd)}\n{err.stderr.strip()}")
     return proc.stdout
 
 
 def check_local_head_is_clean() -> None:
-    """HEAD harus berada pada branch yang bersih (tidak ada commit liar)."""
+    """HEAD must sit on a clean working tree (no stray changes)."""
     status = run(["git", "status", "--porcelain"])
     if status.strip():
-        sys.exit("GAGAL: working tree tidak bersih")
+        sys.exit("FAILED: working tree is not clean")
 
 
 def check_remote_parity() -> None:
-    """Semua tag v* di remote wajib punya GitHub Release terpublikasi."""
+    """Every v* tag on the remote must have a published GitHub Release."""
     tags = run(["git", "ls-remote", "--tags", "origin"]).splitlines()
     version_tags = {line.split("refs/tags/")[1] for line in tags if "refs/tags/v" in line}
     version_tags = {t.removesuffix("^{}") for t in version_tags}
     if not version_tags:
-        print("OK: belum ada tag versi — paritas terpenuhi (belum ada rilis publik)")
+        print("OK: no version tags yet — parity satisfied (no public release)")
         return
     for tag in sorted(version_tags):
         result = run(["gh", "release", "view", tag, "--json", "isDraft"])
         if '"isDraft": true' in result:
-            sys.exit(f"GAGAL: {tag} masih draft — draft bukan rilis (P7)")
-        print(f"OK: {tag} memiliki rilis terverifikasi")
+            sys.exit(f"FAILED: {tag} is still a draft — a draft is not a release (P7)")
+        print(f"OK: {tag} has a verified release")
 
 
 def main() -> None:
@@ -54,7 +54,7 @@ def main() -> None:
         check_remote_parity()
     else:
         check_local_head_is_clean()
-        print("OK: HEAD bersih; belum ada tag yang menuntut paritas rilis")
+        print("OK: HEAD is clean; no tags currently demand release parity")
 
 
 if __name__ == "__main__":

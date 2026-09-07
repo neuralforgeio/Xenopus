@@ -1,5 +1,5 @@
-"""Tools layer: Tool Gateway — discovery, permission, risk, eksekusi.
+"""Tools layer: the Tool Gateway — discovery, permission, risk, execution.
 
-Fase implementasi: Phase 4. Semua tool wajib mendaftar kontrak skema
-(nama, input, output, efek samping, izin, risiko, timeout).
+Implementation phase: Phase 4. Every tool must register a schema contract
+(name, input, output, side effects, permissions, risk, timeout).
 """

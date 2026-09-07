@@ -1,4 +1,4 @@
-"""Test import paket — memastikan seluruh boundary modul termuat tanpa error."""
+"""Package import tests — every module boundary must load without errors."""
 
 import importlib
 
@@ -17,14 +17,14 @@ MODULES = [
 ]
 
 
-def test_import_semua_modul() -> None:
-    """Seluruh modul boundary harus dapat diimpor tanpa error."""
+def test_import_all_modules() -> None:
+    """Every boundary module must be importable without errors."""
     for name in MODULES:
         importlib.import_module(name)
 
 
-def test_version_tersedia_dan_bukan_unknown() -> None:
-    """Versi paket terbaca dari metadata (bukan fallback 'unknown')."""
+def test_version_available_and_not_unknown() -> None:
+    """The package version must be read from metadata (not the 'unknown' fallback)."""
     import xenopus
 
     assert xenopus.__version__ != "unknown"

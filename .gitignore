@@ -18,7 +18,7 @@ venv/
 coverage.xml
 htmlcov/
 
-# Local data & state (local-first: tidak masuk repository)
+# Local data & state (local-first: never enters the repository)
 logs/
 *.log
 *.sqlite
@@ -26,7 +26,7 @@ logs/
 *.sqlite-shm
 *.db
 
-# Secrets & credentials (jangan pernah commit)
+# Secrets & credentials (never commit)
 .env
 .env.*
 *.pem
@@ -41,7 +41,7 @@ Thumbs.db
 .vscode/
 *.swp
 
-# Artifacts sementara
+# Temporary artifacts
 tmp/
 temp/
 *.tmp

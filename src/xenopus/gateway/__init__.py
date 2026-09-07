@@ -1,5 +1,6 @@
-"""Gateway layer: transport multi-channel — Telegram, Discord, webhook (ADR-028).
+"""Gateway layer: multi-channel transport — Telegram, Discord, webhooks (ADR-028).
 
-Fase implementasi: Phase 9 (notification router), Phase 12-14 (channel adapters).
-Channel TIDAK pernah masuk ke core runtime; adapter mengonsumsi RuntimeDriver.
+Implementation phase: Phase 9 (notification router), Phase 12-14 (channel
+adapters). Channels never anchor to the core runtime; adapters consume the
+RuntimeDriver contract.
 """

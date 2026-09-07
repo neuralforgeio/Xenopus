@@ -1,4 +1,4 @@
-"""Test CLI: versi terlihat, doctor sukses, dan error path terlapor."""
+"""CLI tests: version visibility, doctor success, and reported error paths."""
 
 from pathlib import Path
 
@@ -9,7 +9,7 @@ from xenopus.cli import main
 
 
 def test_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
-    """argparse action="version" keluar via SystemExit(0) setelah mencetak."""
+    """argparse action="version" exits via SystemExit(0) after printing."""
     with pytest.raises(SystemExit) as excinfo:
         main(["--version"])
     assert excinfo.value.code == 0
@@ -17,24 +17,24 @@ def test_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
     assert f"xenopus {xenopus.__version__}" in out
 
 
-def test_doctor_sukses_dengan_home_sementara(
+def test_doctor_succeeds_with_temporary_home(
     tmp_xenopus_home: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     assert main(["doctor"]) == 0
     out = capsys.readouterr().out
     assert str(tmp_xenopus_home) in out
-    assert "GAGAL" not in out
+    assert "FAILED" not in out
 
 
-def test_doctor_gagal_env_kosong(
+def test_doctor_fails_on_empty_env(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setenv("XENOPUS_HOME", " ")
     assert main(["doctor"]) == 1
     err = capsys.readouterr().err
-    assert "GAGAL" in err
+    assert "FAILED" in err
 
 
-def test_tanpa_subcommand_menampilkan_help(capsys: pytest.CaptureFixture[str]) -> None:
+def test_no_subcommand_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([]) == 0
     assert "usage:" in capsys.readouterr().out

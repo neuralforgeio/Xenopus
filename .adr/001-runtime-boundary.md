@@ -1,52 +1,54 @@
-# ADR-001: Batas Runtime dan Boundary Modul Xenopus
+# ADR-001: Xenopus Runtime and Module Boundary
 
 ## Status
 Accepted
 
 ## Context
-Xenopus adalah agent runtime multi-surface (CLI, TUI, Web, Desktop, Telegram,
-Discord) dengan risiko arsitektur terbesar: satu modul raksasa ("god module")
-yang memiliki planning, eksekusi, tools, memory, dan UI sekaligus. Protocol v9
-melarang hal ini (Red Zone 4.1), dan addendum orkestrasi menegaskan bahwa
-channel tidak boleh menjangkar ke core.
+Xenopus is a multi-surface agent runtime (CLI, TUI, Web, Desktop, Telegram,
+Discord) whose largest architectural risk is a single "god module" owning
+planning, execution, tools, memory, and UI at once. Protocol v9 forbids
+this (Red Zone 4.1), and the orchestration addendum requires that channels
+never anchor into the core.
 
 ## Decision
-Paket dibagi menjadi subpaket dengan kepemilikan eksklusif:
+The package is divided into subpackages with exclusive ownership:
 
-- `xenopus.runtime` — AgentRuntime inti (FSM, Goal, Plan, Orkestrator).
-- `xenopus.gateway` — adapter channel + notification router; TIDAK PERNAH
-  diimpor oleh `runtime`.
-- `xenopus.tools` — Tool Gateway: discovery, permission, risk, eksekusi.
-- `xenopus.memory` — memori berprovenance; promosi butuh evidence.
-- `xenopus.skills` — registry skill + lifecycle 7 tahap, tanpa auto-trust.
-- `xenopus.provider` — abstraksi model provider; core provider-agnostic.
-- `xenopus.observability` — log terstruktur, metrik, trace, correlation ID.
+- `xenopus.runtime` — the core AgentRuntime (FSM, Goal, Plan, Orchestrator).
+- `xenopus.gateway` — channel adapters + notification router; NEVER imported
+  by `runtime`.
+- `xenopus.tools` — the Tool Gateway: discovery, permission, risk, execution.
+- `xenopus.memory` — provenance-based memory; promotion requires evidence.
+- `xenopus.skills` — skill registry + 7-stage lifecycle, no auto-trust.
+- `xenopus.provider` — model provider abstraction; the core stays
+  provider-agnostic.
+- `xenopus.observability` — structured logs, metrics, traces, correlation IDs.
 
-Aturan dependensi satu arah: interface (cli/tui/web) → runtime → (tools,
-memory, skills, provider) → observability. Gateway hanya mengonsumsi kontrak
-`RuntimeDriver` yang akan didefinisikan pada Phase 2.
+One-way dependency rule: interface (cli/tui/web) → runtime → (tools, memory,
+skills, provider) → observability. The gateway only consumes the
+`RuntimeDriver` contract to be defined in Phase 2.
 
 ## Reversal Criteria
-Bila terbukti ada dua subpaket yang saling mengimpor (dependensi siklik),
-atau `runtime` terbukti mengimpor modul channel, keputusan ini gagal dan
-boundary harus digambar ulang.
+If any two subpackages ever import each other (cyclic dependency), or
+`runtime` is found importing a channel module, this decision has failed and
+the boundary must be redrawn.
 
 ## Sunset Review
-Ditinjau ulang setiap kali subpaket baru ditambahkan (paling cepat: Phase 9).
+Re-examined every time a new subpackage is added (earliest: Phase 9).
 
 ## Consequences
 ### Positive
-- Blast radius kegagalan per-modul terbatas; testable per boundary.
-- Channel outage tidak menjatuhkan core (addendum 82-84).
+- Blast radius of failure is contained per module; testable per boundary.
+- A channel outage never takes down the core (addendum 82-84).
 ### Negative
-- Butuh disiplin import; linter harus menjaga arah dependensi.
+- Requires import discipline; a linter must guard the dependency direction.
 ### Neutral
-- Jumlah file bertambah, tetapi tiap file kecil dan berkepemilikan jelas.
+- More files, but each is small and single-owner.
 
 ## Alternatives Considered
-- Monolit `xenopus/core.py` — ditolak: melanggar Red Zone 4.1 (god module).
-- Paket per-fitur — ditolak: fitur berubah antar fase, kepemilikan stabil.
+- Monolithic `xenopus/core.py` — rejected: violates Red Zone 4.1 (god module).
+- Feature-based packaging — rejected: features shift between phases;
+  ownership boundaries stay stable.
 
 ## References
 - Protocol v9 Section 4.1, Section 19
-- XENOPUS MASTER PROMPT Section 09, 75, 79, 113
+- Xenopus master prompt Sections 09, 75, 79, 113

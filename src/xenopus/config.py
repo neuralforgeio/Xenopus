@@ -1,7 +1,7 @@
-"""Konfigurasi runtime Xenopus.
+"""Xenopus runtime configuration.
 
-Sumber versi tunggal adalah ``pyproject.toml``; modul ini hanya membaca
-metadata, tidak pernah mendefinisikan versi sendiri (ADR-002).
+The single version source is ``pyproject.toml``; this module only reads
+metadata and never defines its own version (ADR-002).
 """
 
 from dataclasses import dataclass, field
@@ -28,40 +28,41 @@ REQUIRED_SUBDIRS: tuple[str, ...] = (
 
 @dataclass(frozen=True, slots=True)
 class XenopusConfig:
-    """Konfigurasi dasar runtime.
+    """Base runtime configuration.
 
     Contract:
-        home: direktori root state lokal Xenopus (tidak dibuat di sini;
-              pembuatan adalah tanggung jawab ``xenopus.bootstrap``).
-        Menyalin config aman untuk thread (immutable dataclass).
+        home: root directory of local Xenopus state (not created here;
+              creation is the responsibility of ``xenopus.bootstrap``).
+        Immutable dataclass; safe to share across threads.
     """
 
     home: Path = field(default_factory=lambda: Path.home() / DEFAULT_HOME_DIR_NAME)
 
     def subdir(self, name: str) -> Path:
-        """Mengembalikan path subdirektori bernama ``name`` di bawah home.
+        """Return the path of subdirectory ``name`` under home.
 
-        Tidak membuat direktori; hanya komputasi path.
+        Does not create the directory; path computation only.
+        Raises ValueError for unknown subdirectory names.
         """
         if name not in REQUIRED_SUBDIRS:
-            msg = f"Subdirektori tidak dikenal: {name!r}"
+            msg = f"Unknown subdirectory: {name!r}"
             raise ValueError(msg)
         return self.home / name
 
     def to_dict(self) -> dict[str, str]:
-        """Representasi dict untuk diagnostik/logging (tanpa data sensitif)."""
+        """Dict representation for diagnostics/logging (no sensitive data)."""
         return {"home": str(self.home)}
 
 
 def load_config() -> XenopusConfig:
-    """Memuat konfigurasi runtime dari environment.
+    """Load runtime configuration from the environment.
 
     Precedence: ``XENOPUS_HOME`` > default ``~/.xenopus``.
-    Failure modes: melempar ``ValueError`` bila nilai XENOPUS_HOME kosong.
+    Failure modes: raises ``ValueError`` when XENOPUS_HOME is set but empty.
     """
     env_home = environ.get(ENV_XENOPUS_HOME)
     if env_home is not None and not env_home.strip():
-        msg = f"{ENV_XENOPUS_HOME} di-set tetapi kosong"
+        msg = f"{ENV_XENOPUS_HOME} is set but empty"
         raise ValueError(msg)
     if env_home:
         return XenopusConfig(home=Path(env_home).expanduser())

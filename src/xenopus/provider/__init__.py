@@ -1,5 +1,5 @@
-"""Provider layer: abstraksi model provider (OpenAI-compatible, dll.) + router.
+"""Provider layer: model provider abstraction (OpenAI-compatible, etc.) + router.
 
-Fase implementasi: Phase 3. Core tetap provider-agnostic; tidak ada
-import provider spesifik di modul core runtime.
+Implementation phase: Phase 3. The core stays provider-agnostic; no
+provider-specific import ever enters the core runtime modules.
 """

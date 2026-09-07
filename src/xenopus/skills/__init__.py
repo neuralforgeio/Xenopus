@@ -1,5 +1,5 @@
-"""Skills layer: registry skill + lifecycle 7 tahap, tanpa auto-trust.
+"""Skills layer: skill registry + 7-stage lifecycle, with no auto-trust.
 
-Fase implementasi: Phase 5. Skill kandidat dievaluasi di sandbox sebelum
-dipromosikan (anti skill-poisoning).
+Implementation phase: Phase 5. Candidate skills are evaluated in a sandbox
+before promotion (skill-poisoning defense).
 """

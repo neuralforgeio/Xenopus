@@ -1,13 +1,13 @@
 # Assumption Ledger — Xenopus
 
-| # | Assumption | Tipe | Risk | Evidence | Confidence | Validasi | Status |
+| # | Assumption | Type | Risk | Evidence | Confidence | Validation | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | pip 25.0.1 mendukung `--group dev` (PEP 735) | [A] | Medium | pip venv 25.0.1 | Sedang | install aktual | TERVERIFIKASI [E] sesi ini |
-| 2 | Hatchling resolve `src/xenopus` wheel | [A] | Low | dok. hatchling | Sedang | `python -m build --wheel` | TERVERIFIKASI [E] sesi ini |
-| 3 | ruff+mypy strict lulus pada scaffold | [I] | Low | pengalaman toolchain | Tinggi | jalankan gates | TERVERIFIKASI [E] |
-| 4 | Textual 8.2.8 kompatibel Python 3.13 | [E] | — | PyPI metadata | Tinggi | install ulang Phase 10 | TERBUKA (non-blocking) |
-| 5 | Telegram long-polling cukup local-first | [A] | Medium | desain P2 | Sedang | riset API Phase 12 | TERBUKA |
-| 6 | MAX_CONCURRENT_AGENTS=4 cocok hardware | [I] | Medium | i5-8350U/8GB | Sedang | benchmark Phase 7 | TERBUKA |
-| 7 | SQLite WAL cukup untuk journal | [I] | Medium | desain | Sedang | load test Phase 6 | TERBUKA |
-| 8 | Webhook inbound butuh tunnel/relay | [A] | High | tension S Rev.2 | Rendah | keputusan user Phase 14 | TERBUKA |
-| 9 | lib Telegram/Discord kompatibel 3.13 | [A] | Medium | — | Rendah | cek registry Phase 12/13 | TERBUKA |
+| 1 | pip supports `--group dev` (PEP 735) | [A] | Medium | venv pip 25.0.1 | Medium | actual install | VERIFIED [E] this session |
+| 2 | Hatchling resolves the `src/xenopus` wheel | [A] | Low | hatchling docs | Medium | `python -m build --wheel` | VERIFIED [E] this session |
+| 3 | ruff+mypy strict pass on scaffold | [I] | Low | toolchain experience | High | run gates | VERIFIED [E] |
+| 4 | Textual 8.2.8 compatible with Python 3.13 | [E] | — | PyPI metadata | High | reinstall in Phase 10 | OPEN (non-blocking) |
+| 5 | Telegram long-polling suffices local-first | [A] | Medium | P2 design | Medium | API research in Phase 12 | OPEN |
+| 6 | MAX_CONCURRENT_AGENTS=4 fits the hardware | [I] | Medium | i5-8350U/8GB | Medium | Phase 7 benchmark | OPEN |
+| 7 | SQLite WAL suffices for the journal | [I] | Medium | design | Medium | Phase 6 load test | OPEN |
+| 8 | Inbound webhooks need a tunnel/relay | [A] | High | Rev.2 tension S | Low | user decision in Phase 14 | OPEN |
+| 9 | Telegram/Discord libs compatible with 3.13 | [A] | Medium | — | Low | registry check in Phase 12/13 | OPEN |

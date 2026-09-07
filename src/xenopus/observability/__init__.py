@@ -1,4 +1,5 @@
-"""Observability layer: log terstruktur, metrik, trace dengan correlation ID.
+"""Observability layer: structured logs, metrics, traces with correlation IDs.
 
-Fase implementasi: Phase 5. Semua log tanpa secret/PII (redaksi wajib).
+Implementation phase: Phase 5. All logs must be free of secrets/PII
+(redaction is mandatory).
 """

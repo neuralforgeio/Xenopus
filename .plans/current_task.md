@@ -1,67 +1,65 @@
-# Current Task — Phase 1: Fondasi/Scaffold Xenopus
+# Current Task — Corrective Remediation: English-Only Policy + Release Governance
 
 ## Objective
-Membangun fondasi repository Xenopus yang bersih, reproducible, testable,
-dan siap menjadi basis Agent Runtime — tanpa fitur runtime lanjutan.
+Permanently normalize all Xenopus-authored content to English, repair
+documentation/metadata, validate SemVer wiring, and verify tag/release
+integrity — without implementing any new product feature.
 
 ## Scope
-- pyproject.toml (metadata, toolchain, sumber versi tunggal)
-- Struktur paket `src/xenopus` + 7 subpaket boundary (ADR-001)
-- config.py (XENOPUS_HOME), bootstrap.py (mkdir idempoten), cli.py
-- Test harness: import, version, config, bootstrap, CLI
-- README.md, CHANGELOG.md, LICENSE (MIT), .gitignore
-- .plans/, .adr/001-002-018, CI + release-parity guard
-- git init, push ke github.com/neuralforgeio/Xenopus, metadata repo
+- Translate all project-authored content to English (source, docstrings,
+  comments, CLI strings, tests, README, CHANGELOG, ADRs, .plans, WORKLOG,
+  pyproject comments, CI labels).
+- Rebuild README as one coherent professional English document with honest
+  status labels (IMPLEMENTED / EXPERIMENTAL / PLANNED / RESEARCH).
+- Update GitHub description/topics (English, accuracy-only claims).
+- Tag/release existence check + release-readiness assessment.
+- Full gates + secret scan + hygiene + push + remote verification.
 
-## Non-Goals (dilarang tersentuh di Phase 1)
-FSM agent, Goal/Plan engine, multi-agent/paralel, Telegram/Discord/webhook,
-scheduler, browser, memory/skills tingkat lanjut, self-improvement/repair,
-desktop, Web/TUI lanjut, Vercel deploy, rilis publik/tag.
+## Non-Goals
+No Phase 2 features (FSM/Goal/Plan), no architecture changes, no new
+dependencies, no TUI/Web/Desktop, no Vercel, no fabricated v1.0.0 release.
 
 ## Baseline Snapshot
-- Workspace: kosong (0 file) [E 2026-09-07]
-- Remote github.com/neuralforgeio/Xenopus: exists, EMPTY, public [E]
-- Test baseline: 0 test → target >0, semua PASS
-- Python 3.13.3 global; venv .venv/ dibuat sesi ini [E]
+- Pre-remediation HEAD: 46706d7 (remote == local, verified)
+- Tests: 15 passed; lint/format/typecheck green (Phase 1 evidence)
+- Tags: zero local, zero remote; Releases: zero (verified 2026-09-07)
 
 ## Impact Radius
-Repository baru — tidak ada konsumen. Risiko dampak: nol eksternal.
+Documentation-only + user-facing CLI strings + their tests. No behavioral
+logic change. Consumers: repository readers, CI.
 
 ## Contract Stability
-CLI `xenopus --version|doctor` = kontrak publik pertama; stabil ke depan.
+`xenopus --version` contract unchanged. CLI `doctor` output strings changed
+(Indonesian → English) — documented in CHANGELOG; no external consumers yet.
 
 ## Test Strategy
-Unit: config (default/env/error), bootstrap (idempotensi), CLI (exit code),
-import seluruh modul, version bukan "unknown".
+Existing suite must remain green; assertions updated for new English
+message strings (`FAILED`, `created`, `already present`, `empty`,
+`Unknown subdirectory`).
 
 ## Rollback Strategy
-`Remove-Item -Recurse -Force C:\Users\Dearly Febriano\xenopus` + remote
-masih kosong; rollback < 5 menit tanpa kehilangan data (semua file baru).
+`git revert <remediation-commit>` — single documentation commit, under
+5 minutes, no data loss.
 
 ## Risk Assessment
-- [A] Kebijakan dependency-groups (PEP 735) di pip 25.0.1 venv — divalidasi
-  saat install (fallback: requirements-dev.txt) → TERVERIFIKASI OK [E]
-- [E] Semua dependency PyPI kompatibel Python 3.13 (dicek 2026-09-07)
-- [I] Hatchling resolve `src/` layout — divalidasi via build wheel
+- Missed Indonesian content remaining after audit — mitigated by
+  repository-wide grep audit (evidence below).
+- Test/message drift — mitigated by full gate re-run.
 
 ## Blast Radius Hypothesis
-Worst case: push gagal → remote tetap kosong; lokal dapat dihapus ulang.
+Worst case: CI red due to string mismatch — caught locally before push.
 
 ## Abortion Criteria
-- Secret scan menemukan kredensial → HALT
-- Identity mismatch gh/git → HALT
-- Test/lint/typecheck gagal > 3 attempts → HALT (S12)
+Secret found, identity mismatch, CI failure unresolved after 3 attempts.
 
 ## Release Strategy Preview
-TIDAK ada rilis publik Phase 1. Versi `1.0.0.dev0` (internal snapshot,
-tanpa tag). Rilis publik pertama 1.0.0 di Phase 19 (ADR-002).
+No tag, no release in this task. v1.0.0 requires the Section 59 checklist —
+currently NOT satisfied (runtime is pre-alpha). Outcome: RELEASE BLOCKED
+with a documented gate list.
 
 ## Knowledge Artifacts
-ADR-001, ADR-002, ADR-018; README; CHANGELOG; WORKLOG; checkpoint.
+CHANGELOG entry (Changed — language normalization); this plan; WORKLOG.
 
-## Decision Ledger (dari planning)
-- D-01: git user.name repo-level = neuralforgeio
-- D-02: push pertama di akhir Phase 1 (setelah gates)
-- D-03: TUI = Textual (install Phase 10, bukan sekarang)
-- D-04: versi dua-tier: dev `1.0.0.devN` tanpa tag; publik pertama 1.0.0
-- D-05: urutan exit Phase 1 = gates → secret scan → hygiene → push
+## Decision Ledger
+- D-06: Permanent English-only policy for communication + all
+  project-authored content (supersedes the Indonesian policy).

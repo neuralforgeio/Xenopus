@@ -1,4 +1,4 @@
-"""Test konfigurasi: default, override env, dan jalur kegagalan."""
+"""Configuration tests: defaults, environment override, and failure paths."""
 
 from pathlib import Path
 
@@ -12,34 +12,34 @@ from xenopus.config import (
 )
 
 
-def test_default_home_adalah_dotxenopus_di_home_user() -> None:
+def test_default_home_is_dotxenopus_in_user_home() -> None:
     config = XenopusConfig()
     assert config.home == Path.home() / ".xenopus"
 
 
-def test_load_config_override_env(tmp_xenopus_home: Path) -> None:
+def test_load_config_env_override(tmp_xenopus_home: Path) -> None:
     config = load_config()
     assert config.home == tmp_xenopus_home
 
 
-def test_load_config_env_kosong_ditolak(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_load_config_rejects_empty_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(ENV_XENOPUS_HOME, "   ")
-    with pytest.raises(ValueError, match="kosong"):
+    with pytest.raises(ValueError, match="empty"):
         load_config()
 
 
-def test_subdir_menolak_nama_tidak_dikenal() -> None:
+def test_subdir_rejects_unknown_name() -> None:
     config = XenopusConfig()
-    with pytest.raises(ValueError, match="tidak dikenal"):
-        config.subdir("bukan-subdir-sah")
+    with pytest.raises(ValueError, match="Unknown subdirectory"):
+        config.subdir("not-a-valid-subdir")
 
 
-def test_subdir_sah_untuk_semua_required(tmp_xenopus_home: Path) -> None:
+def test_subdir_valid_for_all_required(tmp_xenopus_home: Path) -> None:
     config = load_config()
     for name in REQUIRED_SUBDIRS:
         assert config.subdir(name) == tmp_xenopus_home / name
 
 
-def test_to_dict_menampilkan_home() -> None:
+def test_to_dict_exposes_home() -> None:
     config = XenopusConfig()
     assert config.to_dict() == {"home": str(config.home)}

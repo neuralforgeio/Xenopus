@@ -1,5 +1,5 @@
-"""Memory layer: working/episodic/semantic/procedural dengan provenance.
+"""Memory layer: working/episodic/semantic/procedural memory with provenance.
 
-Fase implementasi: Phase 5. Semua memory bermula sebagai ``candidate``;
-promosi ke status aktif membutuhkan evidence (anti memory-poisoning).
+Implementation phase: Phase 5. Every memory item starts as ``candidate``;
+promotion to active status requires evidence (memory-poisoning defense).
 """

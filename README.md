@@ -1,56 +1,73 @@
-# Xenopus
-
 <div align="center">
 
-<img src="docs/assets/xenopus.png" alt="Logo Xenopus" width="180"/>
+<img src="docs/assets/xenopus.png" alt="Xenopus logo" width="180"/>
 
-**Xenopus — self-improving autonomous AI agent runtime.**
+# Xenopus
 
-Lokal-first · Verifiable · Model-agnostic · Python 3.13
+**A self-improving autonomous AI agent runtime.**
+
+Local-first · Verifiable · Model-agnostic · Python 3.13
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB.svg)](pyproject.toml)
+[![CI](https://github.com/neuralforgeio/Xenopus/actions/workflows/ci.yml/badge.svg)](https://github.com/neuralforgeio/Xenopus/actions/workflows/ci.yml)
 
 </div>
 
 ---
 
-## Apa itu Xenopus?
+## Overview
 
-Xenopus adalah runtime untuk **AI agent otonom yang mampu memperbaiki
-dirinya sendiri secara terverifikasi**. Agent tidak sekadar memanggil tool —
-Xenopus menjalankan siklus lengkap: **Perceive → Understand → Goal → Plan →
-Act → Observe → Verify → Reflect → Learn → Consolidate → Improve → Reuse**.
+Xenopus is a runtime for **autonomous AI agents that improve themselves in
+verifiable ways**. An agent does not merely call tools — Xenopus runs a full
+loop:
 
-Setiap klaim didukung bukti. Setiap aksi destruktif membutuhkan otorisasi,
-penilaian risiko, observabilitas, dan jalur pemulihan. Setiap perilaku yang
-dipelajari tunduk pada governance sebelum dipromosikan.
+```
+Perceive → Understand → Goal → Plan → Act → Observe → Verify →
+Reflect → Learn → Consolidate → Improve → Reuse
+```
 
-## Visi
+Every claim requires evidence. Every destructive action requires
+authorization, risk assessment, observability, and a recovery path. Every
+learned behavior passes a governance gate before promotion.
 
-> Sebuah runtime agent yang aman dan dapat diverifikasi — berjalan lokal di
-> mesin Anda, belajar dari pengalaman tervalidasi, dan tidak pernah
-> meningkatkan dirinya tanpa evidence, evaluasi, safety, dan rollback.
+## Vision
 
-## Status Development
+> A safe, verifiable agent runtime — running locally on your machine,
+> growing more effective through validated experience, and never improving
+> itself without evidence, evaluation, safety, and rollback.
 
-**Pre-Alpha — Phase 1 (Fondasi).** Repository ini sedang dibangun bertahap
-mengikuti roadmap yang ketat. Fitur yang tercantum di bawah "Roadmap"
-**belum tersedia** dan akan hadir pada fase masing-masing.
+## Current Status
 
-- Runtime inti saat ini: konfigurasi lokal-first, bootstrap state, CLI dasar
-  (`xenopus --version`, `xenopus doctor`), test harness.
-- Versi development: `1.0.0.dev0` — rilis publik pertama akan berversi
-  **1.0.0** (Semantic Versioning).
+**Pre-Alpha — Phase 1 (Foundation) complete.** Xenopus is being built in
+strictly gated phases. Capabilities listed below as PLANNED are **not yet
+available**.
 
-## Prasyarat
+| Capability | Status |
+|---|---|
+| Repository foundation, toolchain, CI | IMPLEMENTED |
+| Local-first configuration (`~/.xenopus/`, `XENOPUS_HOME`) | IMPLEMENTED |
+| Idempotent state bootstrap + `xenopus doctor` CLI | IMPLEMENTED |
+| Agent FSM · Goal · Plan (DAG) | PLANNED (Phase 2) |
+| Provider layer · Context · Sessions | PLANNED (Phase 3) |
+| Tool Gateway · Permission · Risk · Verifier | PLANNED (Phase 4) |
+| Memory · Skills · Checkpoints · Observability | PLANNED (Phase 5) |
+| Durable task runtime · Remote control | PLANNED (Phase 6) |
+| Multi-agent orchestration · parallel agents | PLANNED (Phase 7-8) |
+| Scheduler · Notification routing | PLANNED (Phase 9) |
+| TUI (Textual) | PLANNED (Phase 10, ADR-018) |
+| Local Web dashboard | PLANNED (Phase 11) |
+| Telegram / Discord / webhooks | PLANNED (Phase 12-14) |
+| Desktop shell | PLANNED (Phase 16) |
+| Self-improvement / self-repair loops | PLANNED (Phase 12) |
+| Fine-tuning pipeline | RESEARCH |
 
-- **Python 3.13.3** (baseline resmi; tidak mendukung versi lain pada saat ini)
-- Git, GitHub CLI (`gh`) — untuk kontribusi dan verifikasi rilis
-
-## Arsitektur (Arah Desain)
+## Core Architecture (Design Direction)
 
 ```
 Interfaces (CLI · TUI · Web · Desktop · Telegram · Discord)
-        ↓ RuntimeDriver (kontrak stabil)
-Gateway Layer (channel adapter · notification router)
+        ↓ RuntimeDriver (stable contract)
+Gateway Layer (channel adapters · notification router)
         ↓
 Agent Runtime (FSM · Goal · Planner · Executor · Verifier)
         ↓
@@ -59,31 +76,33 @@ Tool Gateway · Permission Engine · Risk Engine · Sandbox
 Memory · Skills · Experience · Provider/Model Router
 ```
 
-Prinsip: satu core runtime, banyak surface. Channel tidak pernah masuk ke
-core. Setiap modul memiliki kepemilikan eksklusif (lihat `ADR-001`).
+Principles: one core runtime, many surfaces; channels never enter the core;
+every module owns an exclusive boundary ([ADR-001](.adr/001-runtime-boundary.md)).
 
-## Scope Saat Ini (Phase 1)
+## Security (Design Posture)
 
-- [x] Struktur paket `xenopus` dengan boundary modul yang jelas
-- [x] Konfigurasi lokal-first (`~/.xenopus/`, override `XENOPUS_HOME`)
-- [x] Bootstrap state idempoten + CLI `doctor`
-- [x] Test harness (pytest) + toolchain (ruff, mypy strict)
-- [x] CI GitHub Actions + guard paritas tag-rilis
+Deny-by-default permissions, risk-gated destructive actions, evidence-based
+memory/skill promotion (poisoning defense), secret redaction in logs, and
+sandboxed execution boundaries are foundational design rules — the runtime
+is being built so that autonomy is only ever exercised inside verifiable
+guardrails. Status: PLANNED (phases 4+); see the [ADR series](.adr/).
 
-## Roadmap Singkat
+## Local / Hybrid / Cloud
 
-| Phase | Isi | Status |
-|---|---|---|
-| 1 | Fondasi repository & toolchain | 🚧 sedang berjalan |
-| 2 | Agent FSM · Goal · Plan (DAG) · event journal | ⏳ belum mulai |
-| 3 | Provider layer · Context · Session | ⏳ belum mulai |
-| 4 | Tool Gateway · Permission · Risk · Verifier | ⏳ belum mulai |
-| 5 | Memory · Skills · Checkpoint · Observability | ⏳ belum mulai |
-| 6+ | Task runtime tahan-lama · orkestrasi multi-agent · TUI · Web · channel | ⏳ jauh di depan |
+- **LOCAL (default):** runtime, state, sessions, and tools stay on your
+  machine. Status: foundation IMPLEMENTED.
+- **HYBRID:** local runtime with optional cloud models/providers. PLANNED.
+- **CLOUD:** remote deployment. RESEARCH.
 
-Rincian lengkap: lihat `.plans/` dan seri ADR di `.adr/`.
+## Providers
 
-## Development
+Model providers (OpenAI-compatible endpoints and others) connect through a
+provider-agnostic abstraction with routing and fallback. Status: PLANNED
+(Phase 3). The core never imports provider-specific code.
+
+## Installation
+
+Xenopus has not shipped a stable release yet. Development snapshot:
 
 ```bash
 git clone https://github.com/neuralforgeio/Xenopus.git
@@ -93,20 +112,74 @@ python -m venv .venv
 pip install -e . --group dev
 ```
 
-## Testing
+The first public release will be **1.0.0** (Semantic Versioning).
+
+## Development
 
 ```bash
-pytest            # seluruh suite
-ruff check .      # lint
-ruff format --check .  # format
-mypy              # typecheck (strict)
+ruff check .            # lint
+ruff format --check .   # format check
+mypy                    # strict typecheck
+pytest                  # test suite
+python -m build --wheel # package validation
 ```
 
-## Lisensi
+All gates run in CI on every push ([CI workflow](.github/workflows/ci.yml)),
+including a release-parity guard that fails the build when a version tag
+lacks a published GitHub Release.
 
-MIT — lihat [LICENSE](LICENSE).
+## Testing
 
-## Versi
+15 tests currently cover package imports, configuration, bootstrap
+idempotency, and CLI behavior. The test strategy expands per phase
+(property/invariant tests arrive with the FSM in Phase 2).
 
-Kebijakan: [Semantic Versioning](https://semver.org). Sumber versi tunggal:
-`pyproject.toml`. Rilis publik pertama: **1.0.0**.
+## Project Structure
+
+```
+src/xenopus/
+├── runtime/        # core agent runtime (FSM, Goal, Plan) — Phase 2
+├── gateway/        # multi-channel transport adapters — Phase 12+
+├── tools/          # tool gateway: discovery, permission, risk — Phase 4
+├── memory/         # provenance-based memory — Phase 5
+├── skills/         # skill registry + lifecycle — Phase 5
+├── provider/       # model provider abstraction + router — Phase 3
+├── observability/  # structured logs, metrics, traces — Phase 5
+├── config.py       # local-first configuration
+├── bootstrap.py    # idempotent state bootstrap
+└── cli.py          # CLI surface
+.adr/               # architecture decision records
+.plans/             # engineering governance artifacts
+```
+
+## Roadmap
+
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | Foundation: scaffold, toolchain, CI, governance | ✅ complete |
+| 2 | Agent FSM · Goal · Plan (DAG) · event journal | not started |
+| 3 | Provider layer · Context · Session | not started |
+| 4 | Tool Gateway · Permission · Risk · Verifier | not started |
+| 5 | Memory · Skills · Checkpoint · Observability | not started |
+| 6 | Durable task runtime · remote control | not started |
+| 7-8 | Orchestrator · agent pool · teams · aggregation | not started |
+| 9 | Scheduler · notification router | not started |
+| 10-11 | TUI · Local Web dashboard | not started |
+| 12-14 | Telegram · Discord · webhooks | not started |
+| 16 | Desktop shell | not started |
+| 19 | First public release 1.0.0 | gated |
+
+## Version
+
+- Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
+- Development snapshot: `1.0.0.dev0`.
+- First public release: **1.0.0**.
+- Policy: Semantic Versioning — no digit rollover at 10.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+[MIT](LICENSE) © 2026 Dearly Febriano Irwansyah (neuralforgeio)

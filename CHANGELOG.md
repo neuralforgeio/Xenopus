@@ -1,23 +1,34 @@
 # Changelog
 
-Semua perubahan signifikan pada Xenopus didokumentasikan di file ini.
-Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
-dan project ini menggunakan [Semantic Versioning](https://semver.org).
+All significant changes to Xenopus are documented in this file.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org).
 
-Rilis publik pertama Xenopus akan berversi **1.0.0**. Selama pengembangan,
-versi internal berbentuk `1.0.0.devN` (development snapshot, tanpa tag/rilis publik).
+The first public release of Xenopus will be **1.0.0**. During development,
+internal versions take the form `1.0.0.devN` (development snapshots, no
+public tag/release).
 
-## [Belum Dirilis — 1.0.0.dev0]
+## [Unreleased — 1.0.0.dev0]
 
 ### Added
-- Fondasi repository: struktur paket `xenopus` (runtime, gateway, tools, memory,
-  skills, provider, observability) dengan batas kepemilikan modul yang jelas.
-- Sumber versi tunggal di `pyproject.toml` (kebijakan ADR-002).
-- Konfigurasi runtime lokal-first (`~/.xenopus/`, dapat dipindahkan via `XENOPUS_HOME`).
-- Bootstrap runtime: pembuatan direktori home yang idempoten + diagnostik.
-- CLI dasar: `xenopus --version` dan `xenopus doctor`.
-- Test harness dasar: import paket, ketersediaan versi, konfigurasi, bootstrap.
-- Toolchain pengembangan: pytest, ruff, mypy (strict), hatchling (ADR-002).
-- CI GitHub Actions: lint, format, typecheck, test, build wheel,
-  dan guard paritas tag-rilis (Protocol v9 Section 17.9).
-- Artefak governance: `.plans/`, ADR-001/002/018, WORKLOG.
+- Repository foundation: the `xenopus` package structure (runtime, gateway,
+  tools, memory, skills, provider, observability) with clear module
+  ownership boundaries.
+- Single version source in `pyproject.toml` (ADR-002).
+- Local-first runtime configuration (`~/.xenopus/`, overridable via
+  `XENOPUS_HOME`).
+- Runtime bootstrap: idempotent home-directory creation + diagnostics.
+- Basic CLI: `xenopus --version` and `xenopus doctor`.
+- Basic test harness: package imports, version availability, configuration,
+  bootstrap.
+- Development toolchain: pytest, ruff, mypy (strict), hatchling (ADR-002).
+- GitHub Actions CI: lint, format, typecheck, tests, wheel build,
+  and a release tag-parity guard (Protocol v9 Section 17.9).
+- Governance artifacts: `.plans/`, ADR-001/002/018, WORKLOG.
+
+### Changed
+- (2026-09-07) Permanent project language normalized to English-only across
+  all project-authored content: source docstrings/comments, CLI strings,
+  tests, README, CHANGELOG, ADRs, plans, and CI labels. No functional code
+  changes — user-facing CLI strings (`FAILED`, `created`,
+  `already present`) and error messages updated alongside their tests.

@@ -1,6 +1,6 @@
-"""Bootstrap runtime Xenopus.
+"""Xenopus runtime bootstrap.
 
-Menyiapkan direktori state lokal secara idempoten; aman dipanggil berulang.
+Prepares the local state directories idempotently; safe to call repeatedly.
 """
 
 from dataclasses import dataclass
@@ -10,12 +10,12 @@ from xenopus.config import REQUIRED_SUBDIRS, XenopusConfig
 
 @dataclass(frozen=True, slots=True)
 class BootstrapReport:
-    """Hasil bootstrap.
+    """Bootstrap outcome.
 
     Contract:
-        ok: True bila semua direktori tersedia (sudah ada maupun baru dibuat).
-        created: subdirektori yang baru dibuat.
-        existed: subdirektori yang sudah ada sebelumnya.
+        ok: True when every directory is available (pre-existing or created).
+        created: subdirectories created by this call.
+        existed: subdirectories that already existed.
     """
 
     ok: bool
@@ -24,11 +24,11 @@ class BootstrapReport:
 
 
 def bootstrap_runtime(config: XenopusConfig) -> BootstrapReport:
-    """Membuat direktori state Xenopus bila belum ada (idempoten).
+    """Create Xenopus state directories when missing (idempotent).
 
-    Side effects: operasi filesystem (mkdir) di bawah ``config.home``.
-    Failure modes: membiarkan ``OSError`` dari filesystem merambat —
-    pemanggil menangkap dan melaporkan konteksnya.
+    Side effects: filesystem operations (mkdir) under ``config.home``.
+    Failure modes: ``OSError`` from the filesystem propagates to the caller,
+    which is responsible for reporting its context.
     """
     created: list[str] = []
     existed: list[str] = []

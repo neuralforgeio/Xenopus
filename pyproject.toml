@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "xenopus"
 version = "1.0.0.dev0"
-description = "Xenopus — self-improving autonomous AI agent runtime (lokal-first, verifiable, model-agnostic)."
+description = "Xenopus — self-improving autonomous AI agent runtime (local-first, verifiable, model-agnostic)."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.13,<3.14"
@@ -19,7 +19,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# Runtime dependencies: tidak ada pada Phase 1 — prinsip stdlib-first (ADR-002).
+# Runtime dependencies: none in Phase 1 — stdlib-first principle (ADR-002).
 dependencies = []
 
 [project.scripts]
@@ -57,9 +57,9 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]  # penggunaan assert pada test sah
-# S603 pada parity guard: argumen subprocess berasal dari argparse internal
-# dan konstanta modul — bukan input tidak terpercaya.
+"tests/*" = ["S101"]  # assert usage inside tests is expected
+# S603 in the parity guard: subprocess arguments originate from internal
+# argparse and module constants — not untrusted input.
 "scripts/check_release_parity.py" = ["S603"]
 
 [tool.ruff.format]

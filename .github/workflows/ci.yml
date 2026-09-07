@@ -1,0 +1,38 @@
+name: CI Xenopus
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Pasang toolchain
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . --group dev
+      - name: Lint
+        run: ruff check .
+      - name: Format check
+        run: ruff format --check .
+      - name: Typecheck
+        run: mypy
+      - name: Test
+        run: pytest
+      - name: Build wheel
+        run: |
+          pip install build
+          python -m build --wheel
+      - name: Release parity guard
+        run: python scripts/check_release_parity.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

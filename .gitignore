@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Local data & state (local-first: tidak masuk repository)
+logs/
+*.log
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Secrets & credentials (jangan pernah commit)
+.env
+.env.*
+*.pem
+*.key
+secrets/
+credentials/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Artifacts sementara
+tmp/
+temp/
+*.tmp

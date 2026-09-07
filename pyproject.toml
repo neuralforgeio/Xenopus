@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xenopus"
+version = "1.0.0.dev0"
+description = "Xenopus — self-improving autonomous AI agent runtime (lokal-first, verifiable, model-agnostic)."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.13,<3.14"
+authors = [{ name = "Dearly Febriano Irwansyah", email = "dearlyfebrianoi@gmail.com" }]
+keywords = ["ai-agent", "agent-runtime", "autonomous-agent", "agentic-ai"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+# Runtime dependencies: tidak ada pada Phase 1 — prinsip stdlib-first (ADR-002).
+dependencies = []
+
+[project.scripts]
+xenopus = "xenopus.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1.1",
+  "ruff>=0.16.6",
+  "mypy>=2.3.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/xenopus"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "W",   # pycodestyle warnings
+  "F",   # pyflakes
+  "I",   # isort
+  "UP",  # pyupgrade
+  "B",   # bugbear
+  "S",   # security (bandit-like)
+  "SIM", # simplify
+  "RUF", # ruff-specific
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]  # penggunaan assert pada test sah
+# S603 pada parity guard: argumen subprocess berasal dari argparse internal
+# dan konstanta modul — bukan input tidak terpercaya.
+"scripts/check_release_parity.py" = ["S603"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+mypy_path = "src"
+files = ["src/xenopus", "tests"]

@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from xenopus.persistence.journal import EventJournal
+from xenopus.persistence.reliability import ReliabilityStore
 from xenopus.runtime.budget import RetryPolicy
 from xenopus.runtime.events import Event, EventType
 from xenopus.runtime.observer import ObservationLog
@@ -38,7 +39,9 @@ class Executor:
     Contract:
         execute(): runs one invocation, retrying transient failures up
         to the policy bound. Every attempt journals TOOL_STARTED /
-        TOOL_COMPLETED / TOOL_FAILED; every result is observed.
+        TOOL_COMPLETED /TOOL_FAILED; every result is observed; the final
+        outcome (success + duration) feeds the reliability store when
+        one is attached (addendum 88).
     """
 
     def __init__(
@@ -47,10 +50,12 @@ class Executor:
         gateway: ToolGateway,
         journal: EventJournal,
         observations: ObservationLog,
+        reliability: ReliabilityStore | None = None,
     ) -> None:
         self._gateway = gateway
         self._journal = journal
         self._observations = observations
+        self._reliability = reliability
 
     async def execute(
         self,
@@ -63,7 +68,41 @@ class Executor:
         path_policy: object | None = None,
     ) -> ToolResult:
         """Invoke ``tool`` with bounded retries; returns the final result."""
+        import time
+
         policy = retry_policy or RetryPolicy(max_attempts=1)
+        started_wall = time.monotonic()
+        result: ToolResult | None = None
+        try:
+            result = await self._execute_with_retries(
+                tool,
+                arguments,
+                correlation_id=correlation_id,
+                policy=policy,
+                approval_id=approval_id,
+                path_policy=path_policy,
+            )
+        finally:
+            if self._reliability is not None and result is not None:
+                self._reliability.record(
+                    kind="tool",
+                    subject=tool,
+                    success=result.ok,
+                    duration_seconds=time.monotonic() - started_wall,
+                )
+        return result
+
+    async def _execute_with_retries(
+        self,
+        tool: str,
+        arguments: dict[str, Any],
+        *,
+        correlation_id: str,
+        policy: RetryPolicy,
+        approval_id: str | None,
+        path_policy: object | None,
+    ) -> ToolResult:
+        """Inner retry loop (journaling/observing per attempt)."""
         result: ToolResult | None = None
         for attempt in range(1, policy.max_attempts + 1):
             self._journal.append(

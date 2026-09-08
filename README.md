@@ -84,7 +84,11 @@ available**.
 | Orchestrator: parallel DAG layers with failure isolation + partial-failure reports | IMPLEMENTED (Phase 7) |
 | Pre-parallelization cost gate (overhead/benefit model) | IMPLEMENTED (Phase 7) |
 | Tool quarantine (fails closed; lift after review) | IMPLEMENTED (Phase 7) |
-| Aggregation · teams · synthesizer | PLANNED (Phase 8) |
+| Result aggregator: evidence-first ranking, no naive voting (anti-voting property-tested) | IMPLEMENTED (Phase 8) |
+| Conflict detection with explicit uncertainty + confidence degradation | IMPLEMENTED (Phase 8) |
+| Verified synthesis: aggregate → verifier checks → TRUSTED/UNCERTAIN/REJECTED | IMPLEMENTED (Phase 8) |
+| Team coordinator: orchestrate → aggregate → synthesize with audit ledger | IMPLEMENTED (Phase 8) |
+| Reliability records: empirical per-tool/per-role statistics for routing | IMPLEMENTED (Phase 8) |
 | Scheduler · Notification routing | PLANNED (Phase 9) |
 | TUI (Textual) | PLANNED (Phase 10, ADR-018) |
 | Local Web dashboard | PLANNED (Phase 11) |
@@ -169,7 +173,7 @@ lacks a published GitHub Release.
 
 ## Testing
 
-287 tests cover package imports, configuration, bootstrap, CLI, the
+312 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
@@ -227,7 +231,7 @@ src/xenopus/
 | 5 | Memory · Skills · Checkpoint · Observability | ✅ complete |
 | 6 | Durable task runtime · remote control | ✅ complete |
 | 7 | Orchestrator · agent pool · failure isolation | ✅ complete |
-| 8 | Aggregation · synthesizer · teams | not started |
+| 8 | Aggregation · synthesizer · teams · reliability | ✅ complete |
 | 9 | Scheduler · notification router | not started |
 | 10-11 | TUI · Local Web dashboard | not started |
 | 12-14 | Telegram · Discord · webhooks | not started |
@@ -237,7 +241,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev6`.
+- Development snapshot: `1.0.0.dev7`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

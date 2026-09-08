@@ -8,6 +8,34 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev7]
+
+### Added
+- Result aggregator (ADR-017): claim extraction from agent artifacts;
+  deterministic evidence-first ranking (evidence count > confidence >
+  id — a high-confidence unevidenced claim never outranks a
+  lower-confidence evidenced one; anti-voting invariant is
+  property-tested); content deduplication; conflict resolution by
+  evidence dominance (SUPERSEDED) with irreducible disagreements kept
+  visible as CONFLICT — never merged, never voted; confidence degrades
+  0.25 per unresolved conflict.
+- Verified synthesis (ADR-017): parallel results are never shipped
+  directly — the pipeline is aggregate -> verifier checks -> verdict.
+  Conflicts and missing evidence degrade to an UNCERTAIN verdict with
+  named uncertainties (explicit doubt, addendum 13/63); REJECTED is
+  reserved for actively failing evidence; TRUSTED requires zero
+  uncertainties and is enforced as a constructor invariant.
+- Team coordination (addendum 16): TeamRecord (identity, roles,
+  goal/plan binding) and TeamCoordinator composing orchestrator ->
+  aggregator -> synthesizer with a run ledger for audit — composition
+  only, no new execution engine.
+- Reliability records (ADR-018): SQLite statistics of every real tool
+  invocation (via the executor) and agent run (via the orchestrator) —
+  success/failure/latency per tool and per role, with a deterministic
+  success-rate-minus-slowness rank for future routing policies; the
+  evidence base for Phase 12 learned routing, recorded under existing
+  governance (recording is safe; acting on it is gated).
+
 ## [Unreleased — 1.0.0.dev6]
 
 ### Added

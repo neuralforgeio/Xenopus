@@ -11,6 +11,7 @@ incomplete-evidence markers.
 from __future__ import annotations
 
 import asyncio
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -177,6 +178,7 @@ class Orchestrator:
         profile_for: Any | None = None,
         default_profile: AgentProfile | None = None,
         cost_gate: ParallelizationCostGate | None = None,
+        reliability: Any | None = None,
     ) -> None:
         self._pool = pool
         self._runner = runner
@@ -188,6 +190,7 @@ class Orchestrator:
             permissions_subject="agent",
         )
         self._cost_gate = cost_gate or ParallelizationCostGate()
+        self._reliability = reliability
 
     async def execute(
         self,
@@ -286,6 +289,7 @@ class Orchestrator:
                 task_id=node_id, role=profile.role, error=f"admission refused: {err}"
             )
         result: AgentResult
+        started_wall = time.monotonic()
         try:
             result = await self._runner(contract, profile)
             self._pool.heartbeat(handle.run_id)
@@ -297,6 +301,14 @@ class Orchestrator:
             result = AgentResult.failed(
                 task_id=node_id, role=profile.role, error=f"runner crash: {err}"
             )
+        finally:
+            if self._reliability is not None:
+                self._reliability.record(
+                    kind="agent",
+                    subject=profile.role,
+                    success=(result.status == "COMPLETED"),
+                    duration_seconds=time.monotonic() - started_wall,
+                )
         # Pool health tracks liveness, not success semantics; the
         # observed AgentResult carries the outcome to the caller.
         self._pool.release(handle.run_id, failed=False)

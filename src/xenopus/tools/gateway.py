@@ -22,7 +22,7 @@ from xenopus.runtime.permission import (
 )
 from xenopus.runtime.risk import RiskEngine, RiskFactors, RiskOutcome
 from xenopus.tools.contracts import RiskLevel, ToolResult
-from xenopus.tools.registry import ToolRegistry
+from xenopus.tools.registry import ToolQuarantineError, ToolRegistry
 
 
 async def _materialize(awaitable: Awaitable[ToolResult]) -> ToolResult:
@@ -92,6 +92,8 @@ class ToolGateway:
         """
         try:
             contract, handler = self._registry.get(tool)
+        except ToolQuarantineError as err:
+            return ToolResult.failure("tool_quarantined", str(err))
         except Exception as err:
             return ToolResult.failure("unknown_tool", str(err))
 

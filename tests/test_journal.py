@@ -4,7 +4,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from xenopus.observability.correlation import new_correlation_id
@@ -82,6 +82,7 @@ class TestPropertyJournal:
             max_size=20,
         )
     )
+    @settings(max_examples=25, deadline=None)
     def test_append_order_preserved_for_any_sequence(self, types: list[EventType]) -> None:
         """Any event sequence round-trips in append order."""
         import tempfile

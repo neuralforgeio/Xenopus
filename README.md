@@ -78,7 +78,13 @@ available**.
 | Crash recovery (interrupted tasks flagged RESUMABLE, never auto-restarted) | IMPLEMENTED (Phase 6) |
 | Persistent approvals (hash-bound, expiring, crash-surviving) | IMPLEMENTED (Phase 6) |
 | Recycle bin: reversible deletes (file_delete DENY→APPROVAL, ADR-008 amendment) | IMPLEMENTED (Phase 6) |
-| Multi-agent orchestration · parallel agents | PLANNED (Phase 7-8) |
+| Agent model: profiles, structured contracts + results (never raw prompts/text) | IMPLEMENTED (Phase 7) |
+| Agent pool: admission control (MAX_CONCURRENT_AGENTS=4), depth/child/total limits | IMPLEMENTED (Phase 7) |
+| Heartbeat watchdog with stuck detection (never kills silently) | IMPLEMENTED (Phase 7) |
+| Orchestrator: parallel DAG layers with failure isolation + partial-failure reports | IMPLEMENTED (Phase 7) |
+| Pre-parallelization cost gate (overhead/benefit model) | IMPLEMENTED (Phase 7) |
+| Tool quarantine (fails closed; lift after review) | IMPLEMENTED (Phase 7) |
+| Aggregation · teams · synthesizer | PLANNED (Phase 8) |
 | Scheduler · Notification routing | PLANNED (Phase 9) |
 | TUI (Textual) | PLANNED (Phase 10, ADR-018) |
 | Local Web dashboard | PLANNED (Phase 11) |
@@ -163,7 +169,7 @@ lacks a published GitHub Release.
 
 ## Testing
 
-256 tests cover package imports, configuration, bootstrap, CLI, the
+287 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
@@ -220,7 +226,8 @@ src/xenopus/
 | 4 | Tool Gateway · Permission · Risk · Verifier | ✅ complete |
 | 5 | Memory · Skills · Checkpoint · Observability | ✅ complete |
 | 6 | Durable task runtime · remote control | ✅ complete |
-| 7 | Orchestrator · agent pool · teams · aggregation | not started |
+| 7 | Orchestrator · agent pool · failure isolation | ✅ complete |
+| 8 | Aggregation · synthesizer · teams | not started |
 | 9 | Scheduler · notification router | not started |
 | 10-11 | TUI · Local Web dashboard | not started |
 | 12-14 | Telegram · Discord · webhooks | not started |
@@ -230,7 +237,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev5`.
+- Development snapshot: `1.0.0.dev6`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

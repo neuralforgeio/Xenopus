@@ -8,6 +8,38 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev6]
+
+### Added
+- Agent model (ADR-016): profiles with tool bounds, per-agent permission
+  subjects, budgets, and depth/children limits (overlapping
+  allowed/forbidden tool sets rejected); structured AgentContracts
+  (mission, task, inputs, success criteria — never raw prompts) and
+  AgentResults (status, artifacts, evidence, confidence — never raw
+  text; COMPLETED/FAILED/TIMEOUT factories).
+- Agent pool: admission control via a concurrency semaphore
+  (MAX_CONCURRENT_AGENTS=4 default) plus session limits (depth 2,
+  children 4, total 12) enforced at acquire with typed errors;
+  heartbeat tracking and a stuck-detection watchdog (HEALTHY -> STUCK
+  -> RECOVERING) that never kills silently.
+- Orchestrator: deterministic Kahn-layer DAG execution; independent
+  nodes run concurrently per layer; one agent's failure, crash, or
+  timeout never cancels its siblings; downstream nodes with unmet
+  dependencies are marked failed with a dependency-loss error instead
+  of running on missing evidence; reports aggregate to COMPLETED /
+  PARTIAL (confidence = coverage) / FAILED with explicit
+  incomplete-evidence task lists.
+- Pre-parallelization cost gate: deterministic overhead/benefit model
+  that refuses all-fanout-1 plans and plans whose coordination
+  overhead dominates the parallel benefit (callers may force
+  sequential execution).
+- Tool quarantine (addendum 120): quarantined tools remain registered
+  for audit but fail closed through the gateway with a structured
+  `tool_quarantined` error; lifting requires an explicit call; the
+  executor never retries quarantined calls.
+- Journal property test stabilized (hypothesis deadline removed,
+  bounded examples) — eliminating a recurring suite-level flake.
+
 ## [Unreleased — 1.0.0.dev5]
 
 ### Added

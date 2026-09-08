@@ -21,6 +21,7 @@ from xenopus.tools.gateway import ToolGateway
 PERMANENT_ERROR_CODES = frozenset(
     {
         "unknown_tool",
+        "tool_quarantined",
         "permission_denied",
         "risk_denied",
         "approval_required",

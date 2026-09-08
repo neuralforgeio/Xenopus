@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "xenopus"
-version = "1.0.0.dev7"
+version = "1.0.0.dev8"
 description = "Xenopus — self-improving autonomous AI agent runtime (local-first, verifiable, model-agnostic)."
 readme = "README.md"
 license = { text = "MIT" }

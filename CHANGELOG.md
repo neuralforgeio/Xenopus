@@ -8,6 +8,32 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev8]
+
+### Added
+- Scheduler (ADR-019): four schedule kinds (ONCE, INTERVAL, DAILY,
+  WEEKLY) with deterministic UTC-aware due-time math — no cron-parser
+  dependency. Firing enqueues into the SAME durable TaskStore (one
+  execution engine: the scheduler owns WHEN, the task runtime owns
+  execution). INTERVAL entries fire the latest fully-elapsed slot —
+  long-overdue entries fire once, never in bursts; the per-entry
+  cooldown (>= 1s) paces backlogs. Bounds: per-tick execution budget
+  (default 25) and per-entry max_executions retirement. A reference
+  daemon loop (run_loop) is provided for Phase 10/11 hosts; everything
+  is testable via tick() with an injected clock.
+- Self-maintenance jobs (addendum 39): registered jobs run after fires
+  each tick, must be idempotent, and a failing job never breaks the
+  tick — errors are journaled, never swallowed.
+- Notification router (ADR-020): event-to-priority data table
+  (unmapped events default SILENT — never noisy by accident);
+  per-subscriber policies with rate limits (suppressed, not queued —
+  anti-spam), quiet hours (midnight-crossing windows; CRITICAL always
+  exempt), and digest holding with summary flush; local sinks only
+  (stdout + journal) — the Sink interface is the Phase 12 channel seam.
+  Both deliveries AND suppressions are journaled with reasons.
+- Event vocabulary extended additively to v6: SCHEDULE_FIRED,
+  NOTIFICATION_DELIVERED, NOTIFICATION_SUPPRESSED.
+
 ## [Unreleased — 1.0.0.dev7]
 
 ### Added

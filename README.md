@@ -89,7 +89,9 @@ available**.
 | Verified synthesis: aggregate → verifier checks → TRUSTED/UNCERTAIN/REJECTED | IMPLEMENTED (Phase 8) |
 | Team coordinator: orchestrate → aggregate → synthesize with audit ledger | IMPLEMENTED (Phase 8) |
 | Reliability records: empirical per-tool/per-role statistics for routing | IMPLEMENTED (Phase 8) |
-| Scheduler · Notification routing | PLANNED (Phase 9) |
+| Scheduler: ONCE/INTERVAL/DAILY/WEEKLY, one execution engine (fires into the durable task store) | IMPLEMENTED (Phase 9) |
+| Self-maintenance jobs: bounded, failure-isolated, journaled | IMPLEMENTED (Phase 9) |
+| Notification router: priorities, quiet hours, digests, rate limits, local sinks | IMPLEMENTED (Phase 9) |
 | TUI (Textual) | PLANNED (Phase 10, ADR-018) |
 | Local Web dashboard | PLANNED (Phase 11) |
 | Telegram / Discord / webhooks | PLANNED (Phase 12-14) |
@@ -173,7 +175,7 @@ lacks a published GitHub Release.
 
 ## Testing
 
-312 tests cover package imports, configuration, bootstrap, CLI, the
+347 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
@@ -232,8 +234,8 @@ src/xenopus/
 | 6 | Durable task runtime · remote control | ✅ complete |
 | 7 | Orchestrator · agent pool · failure isolation | ✅ complete |
 | 8 | Aggregation · synthesizer · teams · reliability | ✅ complete |
-| 9 | Scheduler · notification router | not started |
-| 10-11 | TUI · Local Web dashboard | not started |
+| 9 | Scheduler · notification router | ✅ complete |
+| 10 | TUI (Textual) | not started |
 | 12-14 | Telegram · Discord · webhooks | not started |
 | 16 | Desktop shell | not started |
 | 19 | First public release 1.0.0 | gated |
@@ -241,7 +243,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev7`.
+- Development snapshot: `1.0.0.dev8`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

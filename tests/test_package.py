@@ -47,6 +47,8 @@ MODULES = [
     "xenopus.runtime.aggregator",
     "xenopus.runtime.synthesizer",
     "xenopus.runtime.team",
+    "xenopus.runtime.scheduler",
+    "xenopus.runtime.notifications",
     "xenopus.persistence.reliability",
     "xenopus.observability.logs",
     "xenopus.provider",

@@ -115,6 +115,17 @@ class AgentPool:
         """Currently admitted runs."""
         return len(self._live)
 
+    @property
+    def live_handles(self) -> tuple[AgentRunHandle, ...]:
+        """Live run handles, run_id-sorted (read-only watchdog view).
+
+        Observation surface for the watchdog UI (Phase 10): the pool
+        owns admission and health transitions; consumers read handles
+        and ask ``health_of`` per run. Single-loop usage (same-thread
+        asyncio, as the orchestrator uses) makes the snapshot atomic.
+        """
+        return tuple(self._live[run_id].handle for run_id in sorted(self._live))
+
     async def acquire(
         self,
         contract: AgentContract,

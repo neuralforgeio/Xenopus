@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "xenopus"
-version = "1.0.0.dev8"
+version = "1.0.0.dev9"
 description = "Xenopus — self-improving autonomous AI agent runtime (local-first, verifiable, model-agnostic)."
 readme = "README.md"
 license = { text = "MIT" }
@@ -19,11 +19,11 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# Runtime dependencies: httpx only — the provider layer needs a hardened
-# async HTTP client with timeout/cancel support (ADR-005). stdlib-first
-# elsewhere (ADR-002). httpx transitive deps: httpcore, anyio, certifi,
-# idna, sniffio, h11, typing-extensions — all permissive-licensed.
-dependencies = ["httpx>=0.28.1"]
+# Runtime dependencies: httpx for the provider layer (hardened async
+# HTTP client, timeout/cancel support — ADR-005); textual for the TUI
+# (command palette, panels, pilot-testable input model — ADR-021).
+# stdlib-first elsewhere (ADR-002). All transitive deps permissive-licensed.
+dependencies = ["httpx>=0.28.1", "textual>=8.2.8,<9"]
 
 [project.scripts]
 xenopus = "xenopus.cli:main"

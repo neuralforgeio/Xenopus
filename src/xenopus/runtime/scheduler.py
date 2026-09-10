@@ -297,6 +297,19 @@ class Scheduler:
             self.tick()
             await asyncio.sleep(interval_seconds)
 
+    def entries(self) -> list[ScheduleEntry]:
+        """Registered entries, schedule_id-sorted (read-only view).
+
+        Observation surface for hosting UIs (Phase 10): returns the
+        current definitions only; execution state stays internal.
+        """
+        return [self._entries[key].entry for key in sorted(self._entries)]
+
+    def get(self, schedule_id: str) -> ScheduleEntry | None:
+        """One registered entry by id, or None (read-only view)."""
+        state = self._entries.get(schedule_id)
+        return state.entry if state is not None else None
+
 
 @dataclass(slots=True)
 class _EntryState:

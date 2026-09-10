@@ -8,6 +8,38 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev9]
+
+### Added
+- TUI (ADR-021, Textual 8.2.8): the first interactive surface —
+  four panels (tasks, approvals, schedules, agent health) rendered
+  from the EXISTING engines (durable TaskStore, persistent
+  ApprovalStore, Scheduler, AgentPool watchdog states); the TUI adds
+  no runtime logic of its own (ADR-001 boundary).
+- Keyboard-only control flows: new task (F2), refresh (F3),
+  confirmed killswitch (F4), digest flush (F5); row selection opens
+  task inspect, approval grant/deny, schedule detail, and agent
+  health overlays — the full path start → create → inspect →
+  approve → killswitch is drivable via keys alone (pilot-tested).
+- Command palette (ctrl+p) with Xenopus commands (new task, refresh,
+  killswitch, digest, panel focus) alongside the system commands.
+- Textual notification sink: renders router-approved notifications
+  as toasts. The SAME NotificationRouter policy governs TUI delivery
+  (priorities, quiet hours, digests, rate limits — addendum 87); the
+  sink is a delivery surface, never a policy bypass. Notifications
+  render with markup disabled (task titles are untrusted content).
+- In-app scheduler hosting: the app's refresh interval ticks the
+  scheduler (fires due entries into the shared TaskStore — one
+  execution engine); a tick failure surfaces a toast and never kills
+  the UI. `Scheduler.entries()/get()` and `AgentPool.live_handles`
+  added as read-only observation accessors for hosting UIs.
+- ADR-018 numbering collision resolved: the TUI ADR moved from 018
+  to 021 (reliability records own 018); cross-references updated.
+- Textual enters as a runtime dependency (verified: Python 3.13.3
+  install clean, pip check clean; Phase 10 benchmark — ~74 ms full
+  refresh at 200 rows vs 2 s cadence — reversal criteria not
+  triggered, framework retained).
+
 ## [Unreleased — 1.0.0.dev8]
 
 ### Added

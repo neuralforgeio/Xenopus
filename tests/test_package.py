@@ -61,6 +61,11 @@ MODULES = [
     "xenopus.provider.router",
     "xenopus.observability",
     "xenopus.observability.correlation",
+    "xenopus.tui",
+    "xenopus.tui.sink",
+    "xenopus.tui.views",
+    "xenopus.tui.palette",
+    "xenopus.tui.app",
 ]
 
 

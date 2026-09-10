@@ -19,7 +19,7 @@ singular — no two manifests may contradict each other (Protocol v9 Gate 8).
 4. Two-tier version policy: internal `1.0.0.devN` without public tag/release;
    first public release = `1.0.0` + tag `v1.0.0` + GitHub Release (Phase 19).
    SemVer with no digit rollover at 10.
-5. Textual (8.2.8, MIT) is chosen for the TUI (ADR-018) but is NOT installed
+5. Textual (8.2.8, MIT) is chosen for the TUI (ADR-021) but is NOT installed
    in Phase 1 — installation is deferred to the TUI phase (Phase 10).
 
 ## Reversal Criteria

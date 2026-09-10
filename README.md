@@ -92,7 +92,9 @@ available**.
 | Scheduler: ONCE/INTERVAL/DAILY/WEEKLY, one execution engine (fires into the durable task store) | IMPLEMENTED (Phase 9) |
 | Self-maintenance jobs: bounded, failure-isolated, journaled | IMPLEMENTED (Phase 9) |
 | Notification router: priorities, quiet hours, digests, rate limits, local sinks | IMPLEMENTED (Phase 9) |
-| TUI (Textual) | PLANNED (Phase 10, ADR-018) |
+| TUI (Textual): tasks/approvals/schedules/agents panels, command palette, keyboard-only flows | IMPLEMENTED (Phase 10) |
+| TUI notification sink behind the same router policy (quiet hours/digest respected) | IMPLEMENTED (Phase 10) |
+| In-app scheduler hosting (tick loop) + confirmed killswitch command | IMPLEMENTED (Phase 10) |
 | Local Web dashboard | PLANNED (Phase 11) |
 | Telegram / Discord / webhooks | PLANNED (Phase 12-14) |
 | Desktop shell | PLANNED (Phase 16) |

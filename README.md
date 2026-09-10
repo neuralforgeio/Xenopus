@@ -104,7 +104,9 @@ available**.
 | Discord channel: outbound sink (raw REST over httpx) behind the same router policy | IMPLEMENTED (Phase 13) |
 | Discord inbound: py-cord gateway (ADR-024), allow-listed `!`-commands, channel + optional guild allow-lists, no tool execution | IMPLEMENTED (Phase 13) |
 | Token via XENOPUS_DISCORD_TOKEN env var only — Authorization-header auth, never in URLs or logs (redaction-tested) | IMPLEMENTED (Phase 13) |
-| Webhooks | PLANNED (Phase 14) |
+| Webhook inbound (local-first, ADR-025): HMAC-SHA256-verified machine events on the dashboard ASGI seam | IMPLEMENTED (Phase 14) |
+| Webhook replay defense (timestamp window + signed nonce registry), source allow-list fail-closed, per-source rate limits | IMPLEMENTED (Phase 14) |
+| Webhook event mapping: allow-listed `task.create` into the same durable TaskStore — no tool execution, no approvals, no killswitch | IMPLEMENTED (Phase 14) |
 | Desktop shell | PLANNED (Phase 16) |
 | Self-improvement / self-repair loops | PLANNED (Phase 12) |
 | Fine-tuning pipeline | RESEARCH |
@@ -185,7 +187,7 @@ lacks a published GitHub Release.
 
 ## Testing
 
-439 tests cover package imports, configuration, bootstrap, CLI, the
+459 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
@@ -197,7 +199,7 @@ verifier (adversarial rechecks), memory (promotion gate, scope
 isolation, supersession, TTL expiry, quality scoring), skills (full
 trust ladder, threshold refusals, post-trust regression detection),
 checkpoints, and the redacting structured logger (tokens never reach
-sinks), the durable task lifecycle (legal transitions, retry budgets, kill-switch cancel-all, crash-recovery flagging, interruption journaling), persistent approvals (replay-proof, expiry sweeps), recycle-bin deletes with restore, the CLI control surface, and both external channels end-to-end against mock transports (Telegram raw Bot API, Discord raw REST + py-cord command dispatch) — no live-network tests.
+sinks), the durable task lifecycle (legal transitions, retry budgets, kill-switch cancel-all, crash-recovery flagging, interruption journaling), persistent approvals (replay-proof, expiry sweeps), recycle-bin deletes with restore, the CLI control surface, both external channels end-to-end against mock transports (Telegram raw Bot API, Discord raw REST + py-cord command dispatch), and the HMAC-verified webhook inbound surface (signature/replay/size/rate-limit rejections, task-create round-trip) — no live-network tests.
 
 ## Project Structure
 
@@ -249,14 +251,14 @@ src/xenopus/
 | 11 | Local web dashboard (Starlette) | ✅ complete |
 | 12 | Telegram channel | ✅ complete |
 | 13 | Discord channel | ✅ complete |
-| 14 | Webhooks | not started |
+| 14 | Webhooks | ✅ complete |
 | 16 | Desktop shell | not started |
 | 19 | First public release 1.0.0 | gated |
 
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev12`.
+- Development snapshot: `1.0.0.dev13`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

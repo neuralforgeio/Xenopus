@@ -8,6 +8,42 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev13]
+
+### Added
+- Webhook inbound surface (ADR-025, local-first): the third inbound
+  channel, mounted on the EXISTING dashboard ASGI app. Reachability
+  decided by the user: LAN/loopback + HMAC — NO public tunnel, NO
+  relay service, NO third-party trust (closes the tunnel-vs-relay
+  question). External SaaS providers can still deliver via a
+  user-operated tunnel to a LAN endpoint — outside Xenopus's trust
+  boundary by design.
+- Authentication: HMAC-SHA256 over the raw request body
+  (`Xenopus-Signature: sha256=<hexdigest>`), constant-time compare,
+  stdlib only — zero new dependencies. Machine clients cannot hold
+  CSRF tokens; HMAC replaces CSRF for this surface (the operator
+  dashboard keeps CSRF unchanged).
+- Replay defense, two signed layers: `Xenopus-Timestamp` bounded to
+  a 300s clock-skew window, plus a per-source nonce registry with
+  TTL sweep (409 on replay). A restart forgets nonces; the
+  timestamp window bounds post-restart exposure (documented).
+- Fail-closed boundaries: routes mount ONLY when
+  XENOPUS_WEBHOOK_SECRETS configures sources (`source:secret`
+  pairs); unknown sources get 404 (no existence oracle); bodies
+  capped at 64KB (413); JSON-only (415); per-source rate limit
+  30/min with journaled rejections (429); responses are status
+  codes only — request content is never echoed.
+- Event mapping: exactly ONE allow-listed event type,
+  `task.create`, enqueued into the SAME durable TaskStore with
+  correlation_id `webhook:{source}:{nonce}`. Webhooks NEVER execute
+  tools, NEVER touch approvals, NEVER reach the killswitch —
+  machine input holds a lower trust bar than operator commands.
+- 20 ASGI integration tests: valid-signature round-trip, forged/
+  missing/wrong-scheme signatures, nonce replay, stale/future/
+  missing timestamps, oversize/non-JSON/disallowed-type/missing-
+  field rejections, rate-limit trip, routes-absent-without-secrets,
+  both journal outcomes, env loader parsing.
+
 ## [Unreleased — 1.0.0.dev12]
 
 ### Added

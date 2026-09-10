@@ -73,6 +73,7 @@ MODULES = [
     "xenopus.web.views",
     "xenopus.web.server",
     "xenopus.web.run",
+    "xenopus.web.webhooks",
 ]
 
 

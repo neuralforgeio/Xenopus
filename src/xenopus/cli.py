@@ -61,6 +61,7 @@ from xenopus.runtime.scheduler import Scheduler
 from xenopus.web.run import run_dashboard
 from xenopus.web.server import WebServices
 from xenopus.web.sink import WebSink
+from xenopus.web.webhooks import load_webhook_secrets
 
 STATE_COLORS = {
     "COMPLETED": "green",
@@ -238,7 +239,11 @@ def _run_killswitch(args: argparse.Namespace) -> int:
 
 
 def _run_web(args: argparse.Namespace) -> int:
-    """Serve the local web dashboard on 127.0.0.1 (Phase 11)."""
+    """Serve the local web dashboard on 127.0.0.1 (Phase 11).
+
+    Webhook inbound (Phase 14, ADR-025) mounts only when
+    XENOPUS_WEBHOOK_SECRETS configures one or more sources.
+    """
     config = load_config()
     bootstrap_runtime(config)
     db = config.home / "runtime.sqlite"
@@ -250,6 +255,11 @@ def _run_web(args: argparse.Namespace) -> int:
         sink = WebSink()
         router = NotificationRouter(journal=journal)
         router.subscribe(SubscriberPolicy(subscriber="web", digest=True), sink)
+        secrets = load_webhook_secrets()
+        if secrets:
+            print(f"webhook inbound: {len(secrets)} source(s) mounted at /webhooks/{{source}}")
+        else:
+            print("webhook inbound: off (XENOPUS_WEBHOOK_SECRETS not set)")
         services = WebServices(
             store=store,
             journal=journal,
@@ -257,6 +267,8 @@ def _run_web(args: argparse.Namespace) -> int:
             pool=pool,
             router=router,
             sink=sink,
+            approvals=ApprovalStore(str(db), cross_thread=True),
+            webhook_secrets=secrets or None,
         )
         print(f"xenopus web dashboard: http://127.0.0.1:{args.port} (ctrl+c to stop)")
         run_dashboard(services, port=args.port)

@@ -33,6 +33,7 @@ from xenopus.runtime.scheduler import Scheduler
 from xenopus.tui.views import agent_rows as agent_view_rows
 from xenopus.web import views
 from xenopus.web.sink import WebSink
+from xenopus.web.webhooks import WebhookConfig, webhook_routes
 
 TICK_INTERVAL_SECONDS = 2.0
 LIVE_STATES = (
@@ -62,6 +63,8 @@ class WebServices:
     sink: WebSink
     approvals: ApprovalStore | None = None
     tick_interval_seconds: float = TICK_INTERVAL_SECONDS
+    webhook_secrets: dict[str, str] | None = None  # None = surface off (ADR-025)
+    webhook_config: WebhookConfig | None = None  # overrides secrets when set (test seam)
 
 
 class _Csrf:
@@ -235,7 +238,11 @@ async def _tick_loop(services: WebServices, stop: asyncio.Event) -> None:
 
 
 def build_app(services: WebServices) -> Starlette:
-    """Compose the ASGI app: routes + CSRF-guarded handlers + lifespan."""
+    """Compose the ASGI app: routes + CSRF-guarded handlers + lifespan.
+
+    Webhook routes mount ONLY when per-source secrets are configured
+    (ADR-025 fail-closed: the surface is absent, not merely disabled).
+    """
 
     @asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
@@ -249,7 +256,17 @@ def build_app(services: WebServices) -> Starlette:
             with contextlib.suppress(asyncio.CancelledError):
                 await task
 
-    return Starlette(routes=_routes(Dashboard(services)), lifespan=lifespan)
+    routes = _routes(Dashboard(services))
+    webhook = services.webhook_config
+    if webhook is None and services.webhook_secrets:
+        webhook = WebhookConfig(
+            store=services.store,
+            journal=services.journal,
+            secrets=services.webhook_secrets,
+        )
+    if webhook is not None:
+        routes.extend(webhook_routes(webhook))
+    return Starlette(routes=routes, lifespan=lifespan)
 
 
 def _routes(handlers: Dashboard) -> list[Route]:

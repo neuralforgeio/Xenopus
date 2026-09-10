@@ -11,12 +11,27 @@ TUI/Web, which consume the same stores).
 from __future__ import annotations
 
 import argparse
+import asyncio
 import sys
 
 import xenopus
 from xenopus.bootstrap import bootstrap_runtime
 from xenopus.config import load_config
+from xenopus.gateway.telegram import (
+    TOKEN_ENV_VAR,
+    TelegramClient,
+    TelegramCommander,
+    TelegramSink,
+    TelegramSinkConfig,
+)
+from xenopus.gateway.telegram import (
+    load_chat_ids as telegram_load_chat_ids,
+)
+from xenopus.gateway.telegram import (
+    load_token as telegram_load_token,
+)
 from xenopus.observability.correlation import new_correlation_id
+from xenopus.persistence.approvals_store import ApprovalStore
 from xenopus.persistence.journal import EventJournal
 from xenopus.persistence.tasks import TaskError, TaskState, TaskStore
 from xenopus.runtime.agent_pool import AgentPool
@@ -48,6 +63,13 @@ def _build_parser() -> argparse.ArgumentParser:
 
     web = sub.add_parser("web", help="Serve the local web dashboard (127.0.0.1)")
     web.add_argument("--port", type=int, default=8765, help="loopback port (default 8765)")
+
+    telegram = sub.add_parser(
+        "telegram", help="Host the Telegram channel (outbound sink + command poller)"
+    )
+    telegram.add_argument(
+        "--no-poll", action="store_true", help="outbound-only (no inbound command polling)"
+    )
 
     task = sub.add_parser("task", help="Durable task control")
     task_sub = task.add_subparsers(dest="task_command")
@@ -218,6 +240,74 @@ def _run_web(args: argparse.Namespace) -> int:
         journal.close()
 
 
+def _run_telegram(args: argparse.Namespace) -> int:
+    """Host the Telegram channel: outbound sink + command poller (ADR-023)."""
+    token = telegram_load_token()
+    if token is None:
+        print(
+            f"FAILED: {TOKEN_ENV_VAR} is not set — refusing to start "
+            "the Telegram channel (fail-fast, no silent no-op)",
+            file=sys.stderr,
+        )
+        return 1
+    chat_ids = telegram_load_chat_ids()
+    config = load_config()
+    bootstrap_runtime(config)
+    db = config.home / "runtime.sqlite"
+    journal = EventJournal(db, cross_thread=True)
+    store = TaskStore(db, journal=journal, cross_thread=True)
+    approvals = ApprovalStore(str(db), cross_thread=True)
+    client = TelegramClient(token)
+    commander = TelegramCommander(
+        client=client,
+        store=store,
+        approvals=approvals,
+        journal=journal,
+        killswitch=KillSwitch(store=store, journal=journal),
+        chat_ids=chat_ids,
+    )
+    sink = TelegramSink(TelegramSinkConfig(client=client, journal=journal, chat_ids=chat_ids))
+    router = NotificationRouter(journal=journal)
+    router.subscribe(SubscriberPolicy(subscriber="telegram"), sink)
+    scheduler = Scheduler(store=store, journal=journal)
+    try:
+        asyncio.run(
+            _telegram_loop(
+                client=client,
+                commander=commander,
+                scheduler=scheduler,
+                poll=not args.no_poll,
+            )
+        )
+        return 0
+    finally:
+        store.close()
+        journal.close()
+        approvals.close()
+
+
+async def _telegram_loop(
+    *,
+    client: TelegramClient,
+    commander: TelegramCommander,
+    scheduler: Scheduler,
+    poll: bool,
+) -> None:
+    """One loop: startup verification, scheduler ticks, inbound polls."""
+    me = await client.get_me()
+    username = me.get("result", {}).get("username", "bot")
+    print(f"xenopus telegram channel online: @{username} (ctrl+c to stop)")
+    try:
+        while True:
+            scheduler.tick()
+            if poll:
+                await commander.poll_once()
+            else:
+                await asyncio.sleep(1.0)
+    finally:
+        await client.aclose()
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point; returns the process exit code."""
     parser = _build_parser()
@@ -230,6 +320,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_killswitch(args)
     if args.command == "web":
         return _run_web(args)
+    if args.command == "telegram":
+        return _run_telegram(args)
     parser.print_help()
     return 0
 

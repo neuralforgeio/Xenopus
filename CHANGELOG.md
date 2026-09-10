@@ -8,6 +8,35 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev11]
+
+### Added
+- Telegram channel (ADR-023): the first external surface, built on
+  the raw Bot API over the EXISTING httpx seam — ZERO new
+  dependencies. python-telegram-bot 22.8 rejected (LGPL-3.0-only +
+  httpx<0.29 pin); aiogram 3.31 rejected on §9 proportionality (an
+  aiohttp+pydantic stack for two JSON endpoints).
+- Outbound: TelegramSink implements the SAME Sink interface; the
+  SAME NotificationRouter policy (priorities, quiet hours, digests,
+  rate limits) governs delivery — the channel can never bypass
+  policy (addendum 87). Telegram 429s are honored with a bounded
+  single wait (Retry-After, ceiling 30s), then surfaced — no retry
+  loops that would fight the router.
+- Inbound (`xenopus telegram` host, or `--no-poll` for
+  outbound-only): long-polling getUpdates with an allow-listed
+  command table — /start /tasks /task /new /approvals /grant /deny
+  /killswitch + two-step /confirm. Unlisted chats are silently
+  dropped (fail-closed, no oracle). Inbound NEVER executes tools;
+  grant/deny go through the SAME persistent ApprovalStore as every
+  other surface; killswitch needs the explicit /confirm step.
+- Token discipline: XENOPUS_TELEGRAM_TOKEN env var ONLY (missing =
+  host refuses to start — fail-fast). The token never appears in
+  raised errors (redaction test-pinned) and never in the journal.
+- 21 MockTransport tests: send/clamp/429/not-ok paths, sink
+  multi-chat delivery + router digest parity, every command's
+  dispatch round-trip through the real engines, chat allow-list
+  enforcement, offset advancement, poll-error journal-and-continue.
+
 ## [Unreleased — 1.0.0.dev10]
 
 ### Added

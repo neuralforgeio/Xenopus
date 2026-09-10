@@ -98,7 +98,10 @@ available**.
 | Local web dashboard (Starlette, 127.0.0.1-only): tasks/approvals/schedules/agents/events panels | IMPLEMENTED (Phase 11) |
 | Web CSRF-guarded mutations (new task, grant/deny, killswitch) + escaped HTML (XSS-safe) | IMPLEMENTED (Phase 11) |
 | Web notification sink behind the same router policy; scheduler hosting via ASGI lifespan | IMPLEMENTED (Phase 11) |
-| Telegram / Discord / webhooks | PLANNED (Phase 12-14) |
+| Telegram channel (raw Bot API over httpx, zero new deps): outbound sink behind the same router policy | IMPLEMENTED (Phase 12) |
+| Telegram inbound: allow-listed commands (tasks/approvals/grant/deny/killswitch+confirm), chat allow-list, no tool execution | IMPLEMENTED (Phase 12) |
+| Token via XENOPUS_TELEGRAM_TOKEN env var only — never logged, never in error text (redaction-tested) | IMPLEMENTED (Phase 12) |
+| Discord / webhooks | PLANNED (Phase 13-14) |
 | Desktop shell | PLANNED (Phase 16) |
 | Self-improvement / self-repair loops | PLANNED (Phase 12) |
 | Fine-tuning pipeline | RESEARCH |

@@ -24,6 +24,7 @@ MODULES = [
     "xenopus.persistence.journal",
     "xenopus.persistence.sessions",
     "xenopus.gateway",
+    "xenopus.gateway.telegram",
     "xenopus.tools",
     "xenopus.tools.contracts",
     "xenopus.tools.files",

@@ -107,8 +107,11 @@ available**.
 | Webhook inbound (local-first, ADR-025): HMAC-SHA256-verified machine events on the dashboard ASGI seam | IMPLEMENTED (Phase 14) |
 | Webhook replay defense (timestamp window + signed nonce registry), source allow-list fail-closed, per-source rate limits | IMPLEMENTED (Phase 14) |
 | Webhook event mapping: allow-listed `task.create` into the same durable TaskStore — no tool execution, no approvals, no killswitch | IMPLEMENTED (Phase 14) |
+| Self-improvement loop (ADR-026): deterministic consolidation of reliability records into memory candidates through the SAME promotion gate | IMPLEMENTED (Phase 15) |
+| Skill evaluation feed: staged skills with recorded outcomes get evaluations appended through the SAME lifecycle ladder — no auto-trust | IMPLEMENTED (Phase 15) |
+| `xenopus reflect`: manual one-shot consolidation run — read-only over past outcomes, write-only through the gates, budgeted, idempotent | IMPLEMENTED (Phase 15) |
 | Desktop shell | PLANNED (Phase 16) |
-| Self-improvement / self-repair loops | PLANNED (Phase 12) |
+| Self-improvement / self-repair loops | IMPLEMENTED (Phase 15) |
 | Fine-tuning pipeline | RESEARCH |
 
 ## Core Architecture (Design Direction)
@@ -187,7 +190,7 @@ lacks a published GitHub Release.
 
 ## Testing
 
-459 tests cover package imports, configuration, bootstrap, CLI, the
+472 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
@@ -199,7 +202,7 @@ verifier (adversarial rechecks), memory (promotion gate, scope
 isolation, supersession, TTL expiry, quality scoring), skills (full
 trust ladder, threshold refusals, post-trust regression detection),
 checkpoints, and the redacting structured logger (tokens never reach
-sinks), the durable task lifecycle (legal transitions, retry budgets, kill-switch cancel-all, crash-recovery flagging, interruption journaling), persistent approvals (replay-proof, expiry sweeps), recycle-bin deletes with restore, the CLI control surface, both external channels end-to-end against mock transports (Telegram raw Bot API, Discord raw REST + py-cord command dispatch), and the HMAC-verified webhook inbound surface (signature/replay/size/rate-limit rejections, task-create round-trip) — no live-network tests.
+sinks), the durable task lifecycle (legal transitions, retry budgets, kill-switch cancel-all, crash-recovery flagging, interruption journaling), persistent approvals (replay-proof, expiry sweeps), recycle-bin deletes with restore, the CLI control surface, both external channels end-to-end against mock transports (Telegram raw Bot API, Discord raw REST + py-cord command dispatch), the HMAC-verified webhook inbound surface (signature/replay/size/rate-limit rejections, task-create round-trip), and the self-improvement loop (insight thresholds, gate-refusal recording, scope containment, budget caps, idempotence, clean abort on store failure) — no live-network tests.
 
 ## Project Structure
 
@@ -252,13 +255,14 @@ src/xenopus/
 | 12 | Telegram channel | ✅ complete |
 | 13 | Discord channel | ✅ complete |
 | 14 | Webhooks | ✅ complete |
+| 15 | Self-improvement loops | ✅ complete |
 | 16 | Desktop shell | not started |
 | 19 | First public release 1.0.0 | gated |
 
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev13`.
+- Development snapshot: `1.0.0.dev14`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

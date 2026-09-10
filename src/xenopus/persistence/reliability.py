@@ -120,6 +120,20 @@ class ReliabilityStore:
             avg_duration_seconds=avg,
         )
 
+    def subjects_for(self, kind: str) -> list[str]:
+        """Distinct recorded subjects of one kind, name-sorted.
+
+        Read-only query surface for consolidation loops (ADR-018:
+        selection reads the aggregates; nothing is inferred).
+        """
+        return [
+            row[0]
+            for row in self._conn.execute(
+                "SELECT DISTINCT subject FROM reliability_events WHERE kind = ? ORDER BY subject",
+                (kind,),
+            ).fetchall()
+        ]
+
     def best_for(self, kind: str) -> ReliabilityStats | None:
         """Top-ranked subject for a kind (ties: subject name asc)."""
         subjects = [

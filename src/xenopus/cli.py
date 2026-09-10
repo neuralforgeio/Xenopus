@@ -49,15 +49,19 @@ from xenopus.gateway.telegram import (
 from xenopus.gateway.telegram import (
     load_token as telegram_load_token,
 )
+from xenopus.memory.store import MemoryStore
 from xenopus.observability.correlation import new_correlation_id
 from xenopus.persistence.approvals_store import ApprovalStore
 from xenopus.persistence.journal import EventJournal
+from xenopus.persistence.reliability import ReliabilityStore
 from xenopus.persistence.tasks import TaskError, TaskState, TaskStore
 from xenopus.runtime.agent_pool import AgentPool
 from xenopus.runtime.killswitch import KillSwitch
+from xenopus.runtime.learning import ReflectionLoop
 from xenopus.runtime.notifications import NotificationRouter, SubscriberPolicy
 from xenopus.runtime.recovery import CrashRecovery
 from xenopus.runtime.scheduler import Scheduler
+from xenopus.skills.registry import SkillRegistry
 from xenopus.web.run import run_dashboard
 from xenopus.web.server import WebServices
 from xenopus.web.sink import WebSink
@@ -97,6 +101,8 @@ def _build_parser() -> argparse.ArgumentParser:
     discord_cmd.add_argument(
         "--no-listen", action="store_true", help="outbound-only (no inbound command gateway)"
     )
+
+    sub.add_parser("reflect", help="Run the self-improvement loop once (consolidate experience)")
 
     task = sub.add_parser("task", help="Durable task control")
     task_sub = task.add_subparsers(dest="task_command")
@@ -223,6 +229,41 @@ def _run_task_command(args: argparse.Namespace) -> int:
         return 1
     finally:
         _close_stores(store, journal)
+
+
+def _run_reflect() -> int:
+    """Run the ReflectionLoop once over the local state (ADR-026)."""
+    config = load_config()
+    bootstrap_runtime(config)
+    journal = EventJournal(config.home / "runtime.sqlite", cross_thread=True)
+    reliability = ReliabilityStore(str(config.home / "runtime.sqlite"))
+    memory = MemoryStore(config.home / "memory" / "memories.sqlite")
+    skills = SkillRegistry(config.home / "skills" / "skills.sqlite")
+    try:
+        loop = ReflectionLoop(
+            reliability=reliability,
+            memory=memory,
+            skills=skills,
+            journal=journal,
+        )
+        report = loop.run()
+        if report.aborted is not None:
+            print(f"reflection aborted: {report.aborted}", file=sys.stderr)
+            return 1
+        print(f"reflection run: {report.correlation_id}")
+        print(f"memory candidates proposed: {len(report.proposed)}")
+        print(f"promoted (gate passed):      {len(report.promoted)}")
+        print(f"gate refusals (recorded):    {len(report.gate_refused)}")
+        print(f"duplicates skipped:          {report.skipped_duplicates}")
+        print(f"skill evaluations appended:  {len(report.skill_evaluations)}")
+        for refused in report.gate_refused:
+            print(f"refused: {refused}", file=sys.stderr)
+        return 0
+    finally:
+        skills.close()
+        memory.close()
+        reliability.close()
+        journal.close()
 
 
 def _run_killswitch(args: argparse.Namespace) -> int:
@@ -453,6 +494,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_telegram(args)
     if args.command == "discord":
         return _run_discord(args)
+    if args.command == "reflect":
+        return _run_reflect()
     parser.print_help()
     return 0
 

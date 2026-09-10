@@ -8,6 +8,44 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev14]
+
+### Added
+- Self-improvement loop (ADR-026): the Reflect -> Learn ->
+  Consolidate stages of the core loop, closed with a DETERMINISTIC
+  design — no model calls, no free-form "reflections", no
+  self-modification. The loop is read-only over past outcomes
+  (reliability records, ADR-018) and write-only through the
+  EXISTING Phase 5 gates: memory insights enter as CANDIDATE and
+  pass the SAME PromotionGate; skill usage appends evaluations
+  under the SAME 7-stage lifecycle ladder. Gate refusals are
+  recorded, never overridden — the loop cannot bypass governance
+  while it learns (proof-by-construction test included).
+- Insight rules (closed set, conservative thresholds): a tool or
+  agent role with >= 3 recorded failures and a success rate below
+  0.9 becomes ONE memory candidate in WORKSPACE scope
+  ("xenopus-self" — one inspectable, purgeable scope; never
+  GLOBAL/USER). Thresholds are named constants, not model-decided.
+- Idempotent by construction: insights are fingerprinted; a
+  repeat run over unchanged data proposes nothing. Budgets are
+  fixed per run (max 10 memory candidates, max 10 skill
+  evaluations) — the loop cannot write unboundedly.
+- Failure isolation: any store error aborts the run cleanly with
+  a journaled report (aborted reason); a hosting scheduler tick
+  survives. Every run journals its full outcome counts.
+- `xenopus reflect` CLI command: runs the loop once over the
+  local state and prints the consolidation report (proposed /
+  promoted / gate-refused / duplicates / evaluations).
+- ReliabilityStore gained `subjects_for(kind)` — a read-only
+  DISTINCT query the loop consumes; no behavior change elsewhere.
+- 13 tests: insight thresholds, healthy/below-threshold
+  non-insights, agent-role kind mapping, budget caps, idempotence
+  (second run proposes nothing), gate-refusal recording with a
+  promotion-impossible gate, scope containment, staged-skill
+  evaluation append (and no-outcome skills untouched), clean
+  abort on store failure with journal evidence, subjects_for
+  query.
+
 ## [Unreleased — 1.0.0.dev13]
 
 ### Added

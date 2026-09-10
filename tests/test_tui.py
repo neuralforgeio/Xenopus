@@ -3,6 +3,7 @@
 import asyncio
 from collections.abc import Generator
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pytest
 
@@ -18,7 +19,7 @@ from xenopus.runtime.notifications import (
     Priority,
     SubscriberPolicy,
 )
-from xenopus.runtime.scheduler import Scheduler, once_entry
+from xenopus.runtime.scheduler import FireResult, Scheduler, once_entry
 from xenopus.tui.app import TuiServices, XenopusApp
 from xenopus.tui.sink import TextualSink
 from xenopus.tui.views import agent_rows, approval_row, schedule_row, task_row
@@ -36,7 +37,7 @@ def _profile(role: str = "researcher") -> AgentProfile:
 class _Services:
     """Bundle of live engines backing one app instance."""
 
-    def __init__(self, tmp_path, *, with_approvals: bool = True) -> None:
+    def __init__(self, tmp_path: Path, *, with_approvals: bool = True) -> None:
         self.journal = EventJournal(tmp_path / "j.sqlite")
         self.store = TaskStore(tmp_path / "t.sqlite", journal=self.journal)
         self.scheduler = Scheduler(
@@ -73,7 +74,7 @@ class _Services:
 
 
 @pytest.fixture
-def services(tmp_path) -> Generator[_Services]:
+def services(tmp_path: Path) -> Generator[_Services]:
     bundle = _Services(tmp_path)
     yield bundle
     bundle.close()
@@ -194,8 +195,11 @@ class TestPanels:
             assert app.approvals_table.row_count == 1
             assert app.approvals_table.get_row(row.request_id)[1] == "file_delete"
 
-    async def test_approvals_panel_empty_without_store(self, tmp_path, services: _Services) -> None:
-        services.approvals.close()
+    async def test_approvals_panel_empty_without_store(
+        self, tmp_path: Path, services: _Services
+    ) -> None:
+        if services.approvals is not None:
+            services.approvals.close()
         services.approvals = None
         bare = XenopusApp(services.services())
         async with bare.run_test() as pilot:
@@ -325,7 +329,7 @@ class TestSchedulerHosting:
         """A crashing scheduler tick surfaces a toast; the app keeps running."""
 
         class _ExplodingScheduler(Scheduler):
-            def tick(self) -> list[object]:
+            def tick(self) -> list[FireResult]:
                 msg = "boom"
                 raise RuntimeError(msg)
 

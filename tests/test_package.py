@@ -66,6 +66,11 @@ MODULES = [
     "xenopus.tui.views",
     "xenopus.tui.palette",
     "xenopus.tui.app",
+    "xenopus.web",
+    "xenopus.web.sink",
+    "xenopus.web.views",
+    "xenopus.web.server",
+    "xenopus.web.run",
 ]
 
 

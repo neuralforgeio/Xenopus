@@ -119,8 +119,14 @@ class TaskStore:
         TaskError for unknown ids, illegal transitions, and empty titles.
     """
 
-    def __init__(self, path: Path, *, journal: EventJournal | None = None) -> None:
-        self._conn = sqlite3.connect(path)
+    def __init__(
+        self, path: Path, *, journal: EventJournal | None = None, cross_thread: bool = False
+    ) -> None:
+        """Open the task store; ``cross_thread`` relaxes sqlite's thread pin.
+
+        See EventJournal.cross_thread (Phase 11 web-surface contract).
+        """
+        self._conn = sqlite3.connect(path, check_same_thread=not cross_thread)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute(TASKS_TABLE_DDL)
         self._conn.execute(TASKS_INDEX_DDL)

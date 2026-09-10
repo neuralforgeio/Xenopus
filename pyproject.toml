@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "xenopus"
-version = "1.0.0.dev9"
+version = "1.0.0.dev10"
 description = "Xenopus — self-improving autonomous AI agent runtime (local-first, verifiable, model-agnostic)."
 readme = "README.md"
 license = { text = "MIT" }
@@ -21,9 +21,17 @@ classifiers = [
 ]
 # Runtime dependencies: httpx for the provider layer (hardened async
 # HTTP client, timeout/cancel support — ADR-005); textual for the TUI
-# (command palette, panels, pilot-testable input model — ADR-021).
-# stdlib-first elsewhere (ADR-002). All transitive deps permissive-licensed.
-dependencies = ["httpx>=0.28.1", "textual>=8.2.8,<9"]
+# (command palette, panels, pilot-testable input model — ADR-021);
+# starlette+uvicorn for the local web dashboard with python-multipart
+# for form parsing (ADR-022). stdlib-first elsewhere (ADR-002). All
+# transitive deps permissive-licensed.
+dependencies = [
+  "httpx>=0.28.1",
+  "textual>=8.2.8,<9",
+  "starlette>=1.6.0,<2",
+  "uvicorn>=0.52.4,<1",
+  "python-multipart>=0.0.32",
+]
 
 [project.scripts]
 xenopus = "xenopus.cli:main"
@@ -35,6 +43,7 @@ dev = [
   "mypy>=2.3.1",
   "hypothesis>=6.130.0",
   "pytest-asyncio>=1.4.0",
+  "httpx2>=2.12.0",  # Starlette TestClient transport (ADR-022)
 ]
 
 [tool.hatch.build.targets.wheel]

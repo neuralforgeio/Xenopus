@@ -95,7 +95,9 @@ available**.
 | TUI (Textual): tasks/approvals/schedules/agents panels, command palette, keyboard-only flows | IMPLEMENTED (Phase 10) |
 | TUI notification sink behind the same router policy (quiet hours/digest respected) | IMPLEMENTED (Phase 10) |
 | In-app scheduler hosting (tick loop) + confirmed killswitch command | IMPLEMENTED (Phase 10) |
-| Local Web dashboard | PLANNED (Phase 11) |
+| Local web dashboard (Starlette, 127.0.0.1-only): tasks/approvals/schedules/agents/events panels | IMPLEMENTED (Phase 11) |
+| Web CSRF-guarded mutations (new task, grant/deny, killswitch) + escaped HTML (XSS-safe) | IMPLEMENTED (Phase 11) |
+| Web notification sink behind the same router policy; scheduler hosting via ASGI lifespan | IMPLEMENTED (Phase 11) |
 | Telegram / Discord / webhooks | PLANNED (Phase 12-14) |
 | Desktop shell | PLANNED (Phase 16) |
 | Self-improvement / self-repair loops | PLANNED (Phase 12) |

@@ -8,6 +8,38 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev10]
+
+### Added
+- Local web dashboard (ADR-022, Starlette 1.6 + Uvicorn): served on
+  127.0.0.1 ONLY via `xenopus web [--port]`. Server-rendered HTML
+  panels mirroring the TUI — tasks (list/inspect/new), pending
+  approvals (grant/deny), schedules, agent health, and a recent
+  events feed — all over the EXISTING engine bundle; the web layer
+  adds no runtime logic (ADR-001 boundary).
+- Security posture (ADR-022): every mutating POST requires a per-boot
+  CSRF token (constant-time compare; missing/invalid -> 403); GET is
+  always safe (no state changes); all engine strings are
+  `html.escape`d at every interpolation (task titles are untrusted
+  content — XSS-tested); responses carry nosniff/no-store/no-referrer.
+- Web notification sink: bounded newest-first feed of
+  router-APPROVED notifications — the SAME NotificationRouter policy
+  (quiet hours, digests, rate limits) governs web delivery (addendum
+  87); the web UI is never a policy bypass.
+- Scheduler hosting via the ASGI lifespan (same duty as the TUI
+  refresh interval); a tick failure is journaled, never fatal.
+- Engines gained an opt-in `cross_thread=True` constructor flag on
+  EventJournal/TaskStore/ApprovalStore (sqlite thread-pin relaxation
+  for server surfaces; default unchanged for CLI/TUI).
+- Dependency additions (all permissive): starlette, uvicorn,
+  python-multipart (runtime); httpx2 (dev — Starlette TestClient
+  transport).
+- 24 ASGI integration tests: panels, XSS escape, CSRF rejection on
+  every mutation, grant/deny/double-grant flows, killswitch
+  confirmed + aborted, lifespan tick firing, sink routing parity.
+  Live-loopback smoke test verified end-to-end (create via form, bad
+  token 403).
+
 ## [Unreleased — 1.0.0.dev9]
 
 ### Added

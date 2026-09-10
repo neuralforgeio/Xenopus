@@ -54,9 +54,17 @@ class EventJournal:
         fails validation on read. SQLite operational errors propagate.
     """
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, *, cross_thread: bool = False) -> None:
+        """Open the journal; ``cross_thread`` relaxes sqlite's thread pin.
+
+        Servers (Phase 11 web) may serve requests from a different
+        thread than the one that built the stores; WAL mode keeps
+        concurrent readers safe, and writers serialize on the sqlite
+        connection lock. Default False preserves the strict
+        same-thread contract the CLI/TUI rely on.
+        """
         self._path = path
-        self._conn = sqlite3.connect(path)
+        self._conn = sqlite3.connect(path, check_same_thread=not cross_thread)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute(JOURNAL_TABLE_DDL)
         self._conn.execute(JOURNAL_INDEX_DDL)

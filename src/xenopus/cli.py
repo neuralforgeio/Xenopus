@@ -19,8 +19,14 @@ from xenopus.config import load_config
 from xenopus.observability.correlation import new_correlation_id
 from xenopus.persistence.journal import EventJournal
 from xenopus.persistence.tasks import TaskError, TaskState, TaskStore
+from xenopus.runtime.agent_pool import AgentPool
 from xenopus.runtime.killswitch import KillSwitch
+from xenopus.runtime.notifications import NotificationRouter, SubscriberPolicy
 from xenopus.runtime.recovery import CrashRecovery
+from xenopus.runtime.scheduler import Scheduler
+from xenopus.web.run import run_dashboard
+from xenopus.web.server import WebServices
+from xenopus.web.sink import WebSink
 
 STATE_COLORS = {
     "COMPLETED": "green",
@@ -39,6 +45,9 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("doctor", help="Run environment and local-state diagnostics")
+
+    web = sub.add_parser("web", help="Serve the local web dashboard (127.0.0.1)")
+    web.add_argument("--port", type=int, default=8765, help="loopback port (default 8765)")
 
     task = sub.add_parser("task", help="Durable task control")
     task_sub = task.add_subparsers(dest="task_command")
@@ -180,6 +189,35 @@ def _run_killswitch(args: argparse.Namespace) -> int:
         _close_stores(store, journal)
 
 
+def _run_web(args: argparse.Namespace) -> int:
+    """Serve the local web dashboard on 127.0.0.1 (Phase 11)."""
+    config = load_config()
+    bootstrap_runtime(config)
+    db = config.home / "runtime.sqlite"
+    journal = EventJournal(db, cross_thread=True)
+    store = TaskStore(db, journal=journal, cross_thread=True)
+    try:
+        scheduler = Scheduler(store=store, journal=journal)
+        pool = AgentPool()
+        sink = WebSink()
+        router = NotificationRouter(journal=journal)
+        router.subscribe(SubscriberPolicy(subscriber="web", digest=True), sink)
+        services = WebServices(
+            store=store,
+            journal=journal,
+            scheduler=scheduler,
+            pool=pool,
+            router=router,
+            sink=sink,
+        )
+        print(f"xenopus web dashboard: http://127.0.0.1:{args.port} (ctrl+c to stop)")
+        run_dashboard(services, port=args.port)
+        return 0
+    finally:
+        store.close()
+        journal.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point; returns the process exit code."""
     parser = _build_parser()
@@ -190,6 +228,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_task_command(args)
     if args.command == "killswitch":
         return _run_killswitch(args)
+    if args.command == "web":
+        return _run_web(args)
     parser.print_help()
     return 0
 

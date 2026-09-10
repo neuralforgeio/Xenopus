@@ -107,3 +107,7 @@ webhook tunnel-vs-relay decision, ADR-037 candidate).
 - Session verification: `pip install py-cord>=2.8.1,<3` clean;
   `pip check` — "No broken requirements found."; import OK on
   3.13.3
+
+## Sunset Review Outcome (2026-09-10, Phase 16)
+Reviewed — no findings requiring change. Surfaces remain within their ADR bounds; security posture (loopback/CSRF/XSS, token redaction, allow-lists, HMAC+replay) re-verified by the current test suites (459→472 passing).
+

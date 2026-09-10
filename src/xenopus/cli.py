@@ -13,6 +13,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 import sys
+from collections.abc import Callable
+from pathlib import Path
 
 import xenopus
 from xenopus.bootstrap import bootstrap_runtime
@@ -63,7 +65,7 @@ from xenopus.runtime.recovery import CrashRecovery
 from xenopus.runtime.scheduler import Scheduler
 from xenopus.skills.registry import SkillRegistry
 from xenopus.web.run import run_dashboard
-from xenopus.web.server import WebServices
+from xenopus.web.server import WebServices, build_app
 from xenopus.web.sink import WebSink
 from xenopus.web.webhooks import load_webhook_secrets
 
@@ -103,6 +105,26 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     sub.add_parser("reflect", help="Run the self-improvement loop once (consolidate experience)")
+
+    resident = sub.add_parser(
+        "resident", help="Host the desktop-shell resident mode (engines + optional web UI)"
+    )
+    resident.add_argument(
+        "--web", action="store_true", help="also serve the loopback dashboard and open the browser"
+    )
+    resident.add_argument(
+        "--interval",
+        type=float,
+        default=5.0,
+        help="scheduler tick interval in seconds (default 5, bounds 1-3600)",
+    )
+    resident.add_argument(
+        "--reflect-every",
+        type=float,
+        default=3600.0,
+        help="self-improvement loop cadence in seconds (default 3600)",
+    )
+    resident.add_argument("--port", type=int, default=8765, help="dashboard port (default 8765)")
 
     task = sub.add_parser("task", help="Durable task control")
     task_sub = task.add_subparsers(dest="task_command")
@@ -229,6 +251,82 @@ def _run_task_command(args: argparse.Namespace) -> int:
         return 1
     finally:
         _close_stores(store, journal)
+
+
+def _run_resident(args: argparse.Namespace) -> int:
+    """Host the resident mode: engines + optional dashboard (ADR-027)."""
+    from webbrowser import open as open_browser
+
+    from xenopus.runtime.resident import ResidentHost, install_signal_handlers
+
+    config = load_config()
+    bootstrap_runtime(config)
+    host = ResidentHost(
+        home=config.home,
+        tick_interval_seconds=args.interval,
+        reflect_every_seconds=args.reflect_every,
+    )
+    install_signal_handlers(host)
+    stop_dashboard: Callable[[], None] | None = None
+    if args.web:
+        url = f"http://127.0.0.1:{args.port}"
+        print(f"xenopus resident: dashboard at {url} (opening browser)")
+        print("xenopus resident: ctrl+c to stop")
+        _, stop_dashboard = _start_dashboard_thread(config.home, args.port)
+        open_browser(url)
+    else:
+        print("xenopus resident: hosting engines (ctrl+c to stop)")
+    try:
+        report = asyncio.run(host.run())
+        print(
+            f"resident stopped: {report.ticks} tick(s), "
+            f"{report.reflection_runs} reflection run(s) — {report.correlation_id}"
+        )
+        return 0
+    finally:
+        if stop_dashboard is not None:
+            stop_dashboard()
+
+
+def _start_dashboard_thread(home: Path, port: int) -> tuple[object, Callable[[], None]]:
+    """Serve the loopback dashboard on a daemon thread; return (server, stop)."""
+    import threading
+
+    import uvicorn
+
+    db = home / "runtime.sqlite"
+    journal = EventJournal(db, cross_thread=True)
+    store = TaskStore(db, journal=journal, cross_thread=True)
+    scheduler = Scheduler(store=store, journal=journal)
+    pool = AgentPool()
+    sink = WebSink()
+    router = NotificationRouter(journal=journal)
+    router.subscribe(SubscriberPolicy(subscriber="web", digest=True), sink)
+    services = WebServices(
+        store=store,
+        journal=journal,
+        scheduler=scheduler,
+        pool=pool,
+        router=router,
+        sink=sink,
+        approvals=ApprovalStore(str(db), cross_thread=True),
+    )
+    server = uvicorn.Server(
+        uvicorn.Config(
+            build_app(services),
+            host="127.0.0.1",
+            port=port,
+            log_level="warning",
+            access_log=False,
+        )
+    )
+
+    def stop() -> None:
+        server.should_exit = True
+
+    thread = threading.Thread(target=server.run, name="xenopus-resident-web", daemon=True)
+    thread.start()
+    return server, stop
 
 
 def _run_reflect() -> int:
@@ -496,6 +594,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_discord(args)
     if args.command == "reflect":
         return _run_reflect()
+    if args.command == "resident":
+        return _run_resident(args)
     parser.print_help()
     return 0
 

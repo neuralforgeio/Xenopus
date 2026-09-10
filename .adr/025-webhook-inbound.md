@@ -103,3 +103,7 @@ review covering ADR-022/023/024/025 together.
   file), §11.2 (secrets discipline — env-var-only)
 - User decision log 2026-09-10: "Local-first LAN/loopback + HMAC"
   (assumption #8 closure evidence)
+
+## Sunset Review Outcome (2026-09-10, Phase 16)
+Reviewed — no findings requiring change. Surfaces remain within their ADR bounds; security posture (loopback/CSRF/XSS, token redaction, allow-lists, HMAC+replay) re-verified by the current test suites (459→472 passing).
+

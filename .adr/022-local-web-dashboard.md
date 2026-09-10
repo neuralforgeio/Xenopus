@@ -86,3 +86,7 @@ threats).
 - Master prompt Section 79 (web dashboard, local-only)
 - ADR-001 (surfaces consume engines), ADR-021 (TUI precedent)
 - Protocol v9 Section 9 (dependency governance), 11.1 (OWASP gate)
+
+## Sunset Review Outcome (2026-09-10, Phase 16)
+Reviewed — no findings requiring change. Surfaces remain within their ADR bounds; security posture (loopback/CSRF/XSS, token redaction, allow-lists, HMAC+replay) re-verified by the current test suites (459→472 passing).
+

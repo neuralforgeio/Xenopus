@@ -89,3 +89,7 @@ candidate), together with the inbound-security review.
 - Protocol v9 §9 (dependency governance), §11.2 (secrets discipline)
 - PyPI evidence (2026-09-10): PTB 22.8 LGPL-3.0-only, httpx<0.29 pin;
   aiogram 3.31.0 MIT, core deps aiohttp/pydantic/aiofiles/magic-filter
+
+## Sunset Review Outcome (2026-09-10, Phase 16)
+Reviewed — no findings requiring change. Surfaces remain within their ADR bounds; security posture (loopback/CSRF/XSS, token redaction, allow-lists, HMAC+replay) re-verified by the current test suites (459→472 passing).
+

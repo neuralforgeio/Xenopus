@@ -8,6 +8,39 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev15]
+
+### Added
+- Desktop shell (ADR-027, zero dependencies): `xenopus resident`
+  hosts the engines in ONE process — the scheduler tick plus the
+  self-improvement loop on a host-governed cadence — with
+  graceful SIGINT/SIGTERM stop and journaled start/stop.
+  `--web` additionally serves the EXISTING loopback dashboard
+  (ADR-022 posture unchanged) and opens the system browser via
+  the stdlib webbrowser module: the "desktop app" experience
+  without an embedded browser.
+- Framework decision (PyPI evidence 2026-09-10): pystray 0.19.5
+  REJECTED — LGPLv3 (§9.1 forbidden row, same disqualifier as
+  python-telegram-bot in ADR-023) AND unmaintained since 2023;
+  pywebview 6.2.1 REJECTED on §9.3 proportionality (pythonnet +
+  bottle + proxy_tools + platform frameworks to render HTML the
+  system browser already serves against the loopback dashboard).
+- Resident cadence: `--interval` (1-3600s, default 5) governs
+  the scheduler tick; `--reflect-every` (default 3600s) governs
+  the reflection loop — host-side cadence because the scheduler's
+  register_job runs EVERY tick (documented; no second scheduler).
+- 8 resident tests: interval/cadence bounds, stop-before-start,
+  clean stop with tick accounting, scripted-clock cadence proof
+  (exactly one reflection when the boundary crosses; none before),
+  journaled lifecycle, WAL-integrity after hosted run.
+
+### Changed
+- CI housekeeping: actions/checkout v4 -> v7.0.1 and
+  actions/setup-python v5 -> v7.0.0 (marketplace-verified; clears
+  the Node-20 deprecation annotations).
+- ADR-022..025 sunset reviews appended: no findings requiring
+  change; surfaces remain within their ADR bounds.
+
 ## [Unreleased — 1.0.0.dev14]
 
 ### Added

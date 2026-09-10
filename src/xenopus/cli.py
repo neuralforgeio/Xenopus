@@ -17,6 +17,25 @@ import sys
 import xenopus
 from xenopus.bootstrap import bootstrap_runtime
 from xenopus.config import load_config
+from xenopus.gateway.discord import (
+    TOKEN_ENV_VAR as DISCORD_TOKEN_ENV_VAR,
+)
+from xenopus.gateway.discord import (
+    DiscordClient,
+    DiscordCommander,
+    DiscordSink,
+    DiscordSinkConfig,
+    RestResponder,
+)
+from xenopus.gateway.discord import (
+    load_channel_ids as discord_load_channel_ids,
+)
+from xenopus.gateway.discord import (
+    load_guild_ids as discord_load_guild_ids,
+)
+from xenopus.gateway.discord import (
+    load_token as discord_load_token,
+)
 from xenopus.gateway.telegram import (
     TOKEN_ENV_VAR,
     TelegramClient,
@@ -69,6 +88,13 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     telegram.add_argument(
         "--no-poll", action="store_true", help="outbound-only (no inbound command polling)"
+    )
+
+    discord_cmd = sub.add_parser(
+        "discord", help="Host the Discord channel (outbound sink + command gateway)"
+    )
+    discord_cmd.add_argument(
+        "--no-listen", action="store_true", help="outbound-only (no inbound command gateway)"
     )
 
     task = sub.add_parser("task", help="Durable task control")
@@ -286,6 +312,97 @@ def _run_telegram(args: argparse.Namespace) -> int:
         approvals.close()
 
 
+def _run_discord(args: argparse.Namespace) -> int:
+    """Host the Discord channel: outbound sink + command gateway (ADR-024)."""
+    token = discord_load_token()
+    if token is None:
+        print(
+            f"FAILED: {DISCORD_TOKEN_ENV_VAR} is not set — refusing to start "
+            "the Discord channel (fail-fast, no silent no-op)",
+            file=sys.stderr,
+        )
+        return 1
+    channel_ids = discord_load_channel_ids()
+    guild_ids = discord_load_guild_ids()
+    config = load_config()
+    bootstrap_runtime(config)
+    db = config.home / "runtime.sqlite"
+    journal = EventJournal(db, cross_thread=True)
+    store = TaskStore(db, journal=journal, cross_thread=True)
+    approvals = ApprovalStore(str(db), cross_thread=True)
+    client = DiscordClient(token)
+    sink = DiscordSink(DiscordSinkConfig(client=client, journal=journal, channel_ids=channel_ids))
+    router = NotificationRouter(journal=journal)
+    router.subscribe(SubscriberPolicy(subscriber="discord"), sink)
+    scheduler = Scheduler(store=store, journal=journal)
+    try:
+        asyncio.run(
+            _discord_channel(
+                token=token,
+                client=client,
+                store=store,
+                approvals=approvals,
+                journal=journal,
+                scheduler=scheduler,
+                channel_ids=channel_ids,
+                guild_ids=guild_ids,
+                listen=not args.no_listen,
+            )
+        )
+        return 0
+    finally:
+        store.close()
+        journal.close()
+        approvals.close()
+
+
+async def _discord_channel(
+    *,
+    token: str,
+    client: DiscordClient,
+    store: TaskStore,
+    approvals: ApprovalStore,
+    journal: EventJournal,
+    scheduler: Scheduler,
+    channel_ids: frozenset[str],
+    guild_ids: frozenset[str],
+    listen: bool,
+) -> None:
+    """One loop: startup verification, scheduler ticks, inbound gateway."""
+    from xenopus.gateway.discord import DiscordGatewayHost
+
+    me = await client.get_me()
+    username = me.get("username", "bot")
+    print(f"xenopus discord channel online: {username} (ctrl+c to stop)")
+    if not listen:
+        try:
+            while True:
+                scheduler.tick()
+                await asyncio.sleep(1.0)
+        finally:
+            await client.aclose()
+        return
+    commander = DiscordCommander(
+        store=store,
+        approvals=approvals,
+        journal=journal,
+        killswitch=KillSwitch(store=store, journal=journal),
+        channel_ids=channel_ids,
+        guild_ids=guild_ids,
+        responder=RestResponder(client=client, journal=journal),
+    )
+    host = DiscordGatewayHost(
+        token=token,
+        commander=commander,
+        journal=journal,
+        scheduler_tick=scheduler.tick,
+    )
+    try:
+        await host.run()
+    finally:
+        await client.aclose()
+
+
 async def _telegram_loop(
     *,
     client: TelegramClient,
@@ -322,6 +439,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_web(args)
     if args.command == "telegram":
         return _run_telegram(args)
+    if args.command == "discord":
+        return _run_discord(args)
     parser.print_help()
     return 0
 

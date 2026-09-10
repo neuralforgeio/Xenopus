@@ -8,6 +8,49 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev12]
+
+### Added
+- Discord channel (ADR-024): the second external surface. OUTBOUND
+  stays raw REST over the EXISTING httpx seam — the token travels
+  only in the `Authorization: Bot <token>` header (never the URL),
+  with explicit timeouts, a 2000-char clamp, and Discord 429s mapped
+  into one bounded wait (retry_after, ceiling 30s) before surfacing
+  — the router owns retry semantics, never a loop.
+- Dependency: py-cord 2.8.1 (MIT; aiohttp + typing_extensions tree)
+  for the INBOUND WebSocket gateway only — Discord exposes no REST
+  polling for messages, and a raw gateway implementation (identify/
+  resume, heartbeats, session limits) would blow past the ADR-023
+  ~500-LOC raw-client threshold. discord.py 2.7.1 rejected:
+  maintenance-mode 2.x line; py-cord is the actively developed
+  successor. Verified on Python 3.13.3: install, import, pip check.
+- Inbound (`xenopus discord` host, or `--no-listen` for
+  outbound-only): py-cord message events dispatch through the SAME
+  allow-listed command table as Telegram (`!start !tasks !task
+  !new !approvals !grant !deny !killswitch` + two-step `!confirm`;
+  `!` because Discord reserves `/` for registered slash commands,
+  which we deliberately do not register). Unlisted channels are
+  silently dropped (fail-closed); an optional guild allow-list
+  (XENOPUS_DISCORD_GUILD_IDS) narrows further. Inbound NEVER
+  executes tools; grant/deny go through the SAME persistent
+  ApprovalStore; killswitch needs the explicit `!confirm` step.
+- Outbound: DiscordSink implements the SAME Sink interface; the
+  SAME NotificationRouter policy (priorities, quiet hours, digests,
+  rate limits) governs delivery (addendum 87 parity).
+- Token discipline: XENOPUS_DISCORD_TOKEN env var ONLY (missing =
+  host refuses to start — fail-fast, live-verified exit 1). The
+  token never appears in raised errors (redaction test-pinned) and
+  never in the journal.
+- 24 MockTransport/unit tests: send/clamp/429-bounded-wait/api-error
+  paths, token header-auth + never-in-URL, sink multi-channel
+  delivery + router digest parity, every command's dispatch
+  round-trip through the real engines, channel + guild allow-list
+  enforcement, killswitch two-step, responder-failure journaling.
+
+### Changed
+- README stale rows repaired: roadmap (phases 10-11 previously
+  listed as "not started"), testing count, and version snapshot.
+
 ## [Unreleased — 1.0.0.dev11]
 
 ### Added

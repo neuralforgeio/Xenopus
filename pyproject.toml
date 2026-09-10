@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "xenopus"
-version = "1.0.0.dev11"
+version = "1.0.0.dev12"
 description = "Xenopus — self-improving autonomous AI agent runtime (local-first, verifiable, model-agnostic)."
 readme = "README.md"
 license = { text = "MIT" }
@@ -23,14 +23,17 @@ classifiers = [
 # HTTP client, timeout/cancel support — ADR-005); textual for the TUI
 # (command palette, panels, pilot-testable input model — ADR-021);
 # starlette+uvicorn for the local web dashboard with python-multipart
-# for form parsing (ADR-022). stdlib-first elsewhere (ADR-002). All
-# transitive deps permissive-licensed.
+# for form parsing (ADR-022); py-cord for the Discord inbound gateway
+# (WebSocket session protocol — ADR-024; aiohttp+typing_extensions
+# tree, MIT). stdlib-first elsewhere (ADR-002). All transitive deps
+# permissive-licensed.
 dependencies = [
   "httpx>=0.28.1",
   "textual>=8.2.8,<9",
   "starlette>=1.6.0,<2",
   "uvicorn>=0.52.4,<1",
   "python-multipart>=0.0.32",
+  "py-cord>=2.8.1,<3",
 ]
 
 [project.scripts]

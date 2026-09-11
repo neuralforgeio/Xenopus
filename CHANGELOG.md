@@ -4,9 +4,48 @@ All significant changes to Xenopus are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
-The first public release of Xenopus will be **1.0.0**. During development,
-internal versions take the form `1.0.0.devN` (development snapshots, no
-public tag/release).
+## [1.0.0] — 2026-09-11
+
+First public release. Everything below shipped through 19 gated,
+CI-verified phases; `1.0.0.devN` snapshots were internal-only and
+carry no public tag. Highlights:
+
+- **Core runtime**: 20-state agent FSM, goal manager, plan DAG
+  engine, budgeted context assembly, append-only SQLite WAL event
+  journal with correlation ids.
+- **Governance**: tool gateway pipeline (permission → risk →
+  approval → execute → observe), deny-by-default permissions with
+  an absolute DENY row, replay-proof expiring approvals, evidence-
+  based verifier (UNCERTAIN never passes, adversarial rechecks),
+  reversible deletes via recycle bin, kill switch.
+- **Memory & skills**: provenance-tracked memory with evidence-
+  gated promotion; 7-stage skill lifecycle with deterministic
+  trust gates and post-trust regression detection.
+- **Durability & control**: durable task runtime with crash
+  recovery, persistent approvals, scheduler (ONCE/INTERVAL/DAILY/
+  WEEKLY) with one execution engine, notification router
+  (priorities, quiet hours, digests, rate limits).
+- **Multi-agent**: orchestrator with parallel DAG layers,
+  admission-controlled agent pool + heartbeat watchdog, evidence-
+  first result aggregation, verified synthesis, team coordinator,
+  reliability records.
+- **Surfaces**: CLI, Textual TUI, loopback web dashboard
+  (CSRF-guarded, XSS-escaped), resident mode (daemon + browser).
+- **Channels**: Telegram (raw Bot API, zero deps) and Discord
+  (py-cord inbound + raw REST outbound) — outbound always
+  router-governed, inbound allow-listed and never tool-executing.
+- **Webhooks**: local-first HMAC-verified inbound (ADR-025) with
+  replay defense and fail-closed boundaries.
+- **Self-improvement**: deterministic consolidation loop (ADR-026)
+  — reliability records become memory candidates/skill evaluations
+  through the SAME governance gates; budgeted, idempotent,
+  scope-contained.
+- **Search**: FTS5 session title search with injection-safe
+  quoting and LIKE fallback (ADR-028).
+- **Verification posture**: 488 tests (no live-network tests),
+  strict mypy, ruff clean, CI on every push; on-demand benchmark
+  suite with measured pool/journal envelopes (assumption ledger
+  fully closed).
 
 ## [Unreleased — 1.0.0.dev17]
 

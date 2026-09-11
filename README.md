@@ -39,9 +39,10 @@ learned behavior passes a governance gate before promotion.
 
 ## Current Status
 
-**Pre-Alpha — Phase 1 (Foundation) complete.** Xenopus is being built in
-strictly gated phases. Capabilities listed below as PLANNED are **not yet
-available**.
+**1.0.0 — first public release.** All core capabilities below are
+IMPLEMENTED and verified; every phase shipped through a gated,
+evidence-first development process (19 phases, each with green CI
+before merge).
 
 | Capability | Status |
 |---|---|
@@ -167,8 +168,6 @@ local/privacy-first) — IMPLEMENTED (Phase 3).
 
 ## Installation
 
-Xenopus has not shipped a stable release yet. Development snapshot:
-
 ```bash
 git clone https://github.com/neuralforgeio/Xenopus.git
 cd Xenopus
@@ -177,7 +176,7 @@ python -m venv .venv
 pip install -e . --group dev
 ```
 
-The first public release will be **1.0.0** (Semantic Versioning).
+Requires Python 3.13. Current release: **1.0.0** (Semantic Versioning).
 
 ## Development
 
@@ -202,7 +201,7 @@ lacks a published GitHub Release.
 
 ## Testing
 
-480 tests cover package imports, configuration, bootstrap, CLI, the
+488 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
@@ -271,13 +270,12 @@ src/xenopus/
 | 16 | Desktop shell (resident mode) | ✅ complete |
 | 17 | Hardening — benchmarks + assumption closure | ✅ complete |
 | 18 | FTS5 session search + release preparation | ✅ complete |
-| 19 | First public release 1.0.0 | gated — awaiting explicit authorization |
+| 19 | First public release 1.0.0 | ✅ complete |
 
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev17`.
-- First public release: **1.0.0**.
+- Current release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 
 ## Changelog

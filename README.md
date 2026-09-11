@@ -115,7 +115,7 @@ available**.
 | On-demand benchmark suite (`scripts/benchmark.py`): agent-pool concurrency curve + journal WAL throughput/read/WAL-growth — excluded from CI (runner-stable guardrails only) | IMPLEMENTED (Phase 17) |
 | Verified pool bound: MAX_CONCURRENT_AGENTS=4 matches the 4 physical cores — 8-way shows zero gain (GIL + core alignment, measured) | VERIFIED (Phase 17) |
 | Verified journal envelope: batched ~254k appends/s, 2.2ms reads at 20k rows, 3.9 MB WAL; unbatched appends fsync per event (durability contract) — bulk paths must batch | VERIFIED (Phase 17) |
-| Desktop shell | PLANNED (Phase 16) |
+| Session search: FTS5 prefix/token matching over titles (indexed, injection-safe token quoting) with automatic LIKE fallback — ADR-028 | IMPLEMENTED (Phase 18) |
 | Self-improvement / self-repair loops | IMPLEMENTED (Phase 15) |
 | Fine-tuning pipeline | RESEARCH |
 
@@ -270,12 +270,13 @@ src/xenopus/
 | 15 | Self-improvement loops | ✅ complete |
 | 16 | Desktop shell (resident mode) | ✅ complete |
 | 17 | Hardening — benchmarks + assumption closure | ✅ complete |
-| 19 | First public release 1.0.0 | gated |
+| 18 | FTS5 session search + release preparation | ✅ complete |
+| 19 | First public release 1.0.0 | gated — awaiting explicit authorization |
 
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev16`.
+- Development snapshot: `1.0.0.dev17`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

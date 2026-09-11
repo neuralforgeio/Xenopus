@@ -2,8 +2,8 @@
 
 Sessions live in SQLite under the Xenopus home directory (master prompt
 53-54): create, append turns, fork with lineage, search titles via FTS5
-unavailable-safe LIKE, archive. Usage (tokens/cost) accumulates per turn
-for the cost manager (master prompt 66).
+with a LIKE fallback (ADR-028), archive. Usage (tokens/cost) accumulates
+per turn for the cost manager (master prompt 66).
 """
 
 from __future__ import annotations
@@ -43,6 +43,33 @@ CREATE INDEX IF NOT EXISTS idx_turns_session
     ON session_turns (session_id, created_at)
 """
 
+SESSION_FTS_DDL = """
+CREATE VIRTUAL TABLE IF NOT EXISTS sessions_fts USING fts5(
+    title, content='sessions', content_rowid='rowid'
+)
+"""
+
+SESSION_FTS_TRIGGERS_DDL = (
+    """
+    CREATE TRIGGER IF NOT EXISTS sessions_fts_insert AFTER INSERT ON sessions BEGIN
+        INSERT INTO sessions_fts(rowid, title) VALUES (new.rowid, new.title);
+    END
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS sessions_fts_delete AFTER DELETE ON sessions BEGIN
+        INSERT INTO sessions_fts(sessions_fts, rowid, title)
+        VALUES ('delete', old.rowid, old.title);
+    END
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS sessions_fts_update AFTER UPDATE OF title ON sessions BEGIN
+        INSERT INTO sessions_fts(sessions_fts, rowid, title)
+        VALUES ('delete', old.rowid, old.title);
+        INSERT INTO sessions_fts(rowid, title) VALUES (new.rowid, new.title);
+    END
+    """,
+)
+
 
 class SessionError(Exception):
     """Raised for session-store misuse: unknown ids, illegal operations."""
@@ -74,6 +101,30 @@ class Session:
     archived: bool
 
 
+def _fts5_available(conn: sqlite3.Connection) -> bool:
+    """Probe FTS5 support (exotic SQLite builds may lack it)."""
+    try:
+        conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS _fts_probe USING fts5(x)")
+        conn.execute("DROP TABLE IF EXISTS _fts_probe")
+        return True
+    except sqlite3.OperationalError:
+        return False
+
+
+def _quote_tokens(query: str) -> str:
+    """Render a search string as a safe FTS5 prefix query.
+
+    Every token is double-quoted so FTS5 syntax (OR/AND/NOT/NEAR,
+    column filters) becomes literal text; `*` grants prefix
+    matching. Untrusted input can therefore never alter query
+    semantics (ADR-028 injection defense).
+    """
+    tokens = query.replace('"', " ").split()
+    if not tokens:
+        return ""
+    return " ".join(f'"{token}"*' for token in tokens)
+
+
 class SessionStore:
     """SQLite-backed session persistence.
 
@@ -82,18 +133,32 @@ class SessionStore:
             parent (master prompt 54: forking preserves lineage).
         append_turn(): appends one message with usage accounting.
         turns()/lineage()/search()/archive() read or update rows.
+        search(): FTS5 prefix matching over non-archived titles when
+            the build provides FTS5, LIKE substring otherwise; the
+            API and ordering are identical either way (ADR-028).
 
     Failure modes:
         SessionError for unknown session ids and archived-session writes
         (archived sessions are immutable history).
     """
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, *, force_like: bool = False) -> None:
         self._conn = sqlite3.connect(path)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute(SESSIONS_TABLE_DDL)
         self._conn.execute(SESSION_TURNS_TABLE_DDL)
         self._conn.execute(SESSION_INDEX_DDL)
+        self._fts = not force_like and _fts5_available(self._conn)
+        if self._fts:
+            existed = self._conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE name = 'sessions_fts'"
+            ).fetchone()
+            self._conn.execute(SESSION_FTS_DDL)
+            for trigger_ddl in SESSION_FTS_TRIGGERS_DDL:
+                self._conn.execute(trigger_ddl)
+            if existed is None:
+                # Fresh index over existing rows (idempotent migration).
+                self._conn.execute("INSERT INTO sessions_fts(sessions_fts) VALUES('rebuild')")
         self._conn.commit()
 
     def create(self, title: str) -> Session:
@@ -242,10 +307,32 @@ class SessionStore:
         return chain
 
     def search(self, query: str) -> list[Session]:
-        """Search non-archived session titles, newest first."""
+        """Search non-archived session titles, newest first.
+
+        FTS5 prefix matching when available (tokens quoted —
+        untrusted strings can never alter query semantics,
+        ADR-028); LIKE substring otherwise. A malformed FTS
+        expression falls back to LIKE for this call — search
+        never surfaces a syntax error.
+        """
         if not query.strip():
             msg = "search query must be non-empty"
             raise SessionError(msg)
+        if self._fts:
+            fts_query = _quote_tokens(query)
+            if fts_query:
+                try:
+                    rows = self._conn.execute(
+                        "SELECT s.session_id, s.title, s.parent_session_id, "
+                        "       s.created_at, s.updated_at, s.archived "
+                        "FROM sessions_fts f JOIN sessions s ON s.rowid = f.rowid "
+                        "WHERE s.archived = 0 AND sessions_fts MATCH ? "
+                        "ORDER BY s.updated_at DESC",
+                        (fts_query,),
+                    ).fetchall()
+                    return [self._row_to_session(row) for row in rows]
+                except sqlite3.OperationalError:
+                    pass  # malformed expression despite quoting: fall back
         rows = self._conn.execute(
             "SELECT session_id, title, parent_session_id, created_at, updated_at, archived "
             "FROM sessions WHERE archived = 0 AND title LIKE ? "

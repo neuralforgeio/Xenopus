@@ -8,6 +8,36 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev17]
+
+### Added
+- FTS5 session search (ADR-028): session titles are now indexed in
+  an external-content FTS5 virtual table kept in sync by INSERT/
+  UPDATE/DELETE triggers. Search gains prefix/token matching
+  ("deplo" finds "deploy the app") with unchanged ordering and
+  archived-exclusion semantics; the `search(query)` signature is
+  untouched and all pre-existing contract tests pass through the
+  new path unchanged (transparent upgrade).
+- Query safety (untrusted input): every token is double-quoted
+  before assembly — FTS5 operators (OR/NEAR, column filters)
+  become literal text and can never alter query semantics; a
+  malformed expression still falls back to LIKE for that call.
+- Migration + fallback (Protocol §14 care): additive-only schema
+  objects (virtual table + 3 triggers); idempotent rebuild on
+  first open after upgrade (tested against a legacy pre-FTS
+  database); automatic LIKE fallback when the SQLite build lacks
+  FTS5, exercised deterministically via `force_like=True` (the
+  tested rollback path). Rollback = drop the additive objects;
+  no existing row is ever touched.
+
+### Changed
+- Release preparation (Phase 18 Part B): 1.0.0 release-notes
+  DRAFT completed (highlights, install, verification, dependency
+  manifest, ceremony checklist); release-parity guard dry-run
+  verified ("OK: no version tags yet"); README stale-row sweep
+  (a leftover duplicate desktop-shell row removed; roadmap now
+  shows 18 complete and 19 gated-pending-authorization).
+
 ## [Unreleased — 1.0.0.dev16]
 
 ### Added

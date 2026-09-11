@@ -112,6 +112,9 @@ available**.
 | `xenopus reflect`: manual one-shot consolidation run — read-only over past outcomes, write-only through the gates, budgeted, idempotent | IMPLEMENTED (Phase 15) |
 | Desktop shell (ADR-027): `xenopus resident` — zero-dependency daemon hosting engines + periodic reflection; `--web` serves the loopback dashboard in the system browser | IMPLEMENTED (Phase 16) |
 | Resident cadence: scheduler tick (1-3600s) + reflection loop (host-governed cadence, default hourly), graceful SIGINT/SIGTERM stop, journaled start/stop | IMPLEMENTED (Phase 16) |
+| On-demand benchmark suite (`scripts/benchmark.py`): agent-pool concurrency curve + journal WAL throughput/read/WAL-growth — excluded from CI (runner-stable guardrails only) | IMPLEMENTED (Phase 17) |
+| Verified pool bound: MAX_CONCURRENT_AGENTS=4 matches the 4 physical cores — 8-way shows zero gain (GIL + core alignment, measured) | VERIFIED (Phase 17) |
+| Verified journal envelope: batched ~254k appends/s, 2.2ms reads at 20k rows, 3.9 MB WAL; unbatched appends fsync per event (durability contract) — bulk paths must batch | VERIFIED (Phase 17) |
 | Desktop shell | PLANNED (Phase 16) |
 | Self-improvement / self-repair loops | IMPLEMENTED (Phase 15) |
 | Fine-tuning pipeline | RESEARCH |
@@ -184,7 +187,14 @@ ruff format --check .   # format check
 mypy                    # strict typecheck
 pytest                  # test suite
 python -m build --wheel # package validation
+python scripts/benchmark.py  # on-demand benchmarks (pool + journal)
 ```
+
+Benchmarks are pytest tests marked `benchmark`, excluded from the
+default run (CI included) because absolute timings vary by runner;
+their guardrails assert only hardware-independent pathologies. The
+measured envelopes for the assumption ledger live in
+[CHANGELOG.md](CHANGELOG.md) (Phase 17 entry).
 
 All gates run in CI on every push ([CI workflow](.github/workflows/ci.yml)),
 including a release-parity guard that fails the build when a version tag
@@ -259,12 +269,13 @@ src/xenopus/
 | 14 | Webhooks | ✅ complete |
 | 15 | Self-improvement loops | ✅ complete |
 | 16 | Desktop shell (resident mode) | ✅ complete |
+| 17 | Hardening — benchmarks + assumption closure | ✅ complete |
 | 19 | First public release 1.0.0 | gated |
 
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Development snapshot: `1.0.0.dev15`.
+- Development snapshot: `1.0.0.dev16`.
 - First public release: **1.0.0**.
 - Policy: Semantic Versioning — no digit rollover at 10.
 

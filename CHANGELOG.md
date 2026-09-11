@@ -8,6 +8,37 @@ The first public release of Xenopus will be **1.0.0**. During development,
 internal versions take the form `1.0.0.devN` (development snapshots, no
 public tag/release).
 
+## [Unreleased — 1.0.0.dev16]
+
+### Added
+- On-demand benchmark suite (Phase 17, assumption-ledger closure):
+  `scripts/benchmark.py` (or `pytest -m benchmark`) runs the
+  performance evidence that was previously NOT RUN. Benchmarks are
+  excluded from the default test run and CI (absolute timings vary
+  by runner); their guardrails assert only hardware-independent
+  pathologies (admission never exceeds bounds; batched appends
+  complete; reads return what was written).
+
+### Verified (measured on i5-8350U/8GB, 2026-09-10)
+- Assumption #6 CLOSED — MAX_CONCURRENT_AGENTS=4: the concurrency
+  curve (1/2/4/8, 16 agents, blocking thread-pool work) is flat
+  past 4 — 4->8 speedup factor 1.00. The GIL serializes Python
+  bytecode and the CPU has exactly 4 physical cores; the constant
+  matches the hardware. Zero admission violations at every level.
+- Assumption #7 CLOSED — SQLite WAL journal suffices at runtime
+  scale, with a documented envelope: batched appends ~254k ops/s
+  at 20k events (0.079s); events_for() read 2.2ms at 20k rows; WAL
+  sidecar 3.9 MB at 20k events. CAVEAT recorded: UNBATCHED appends
+  run ~263 ops/s (each append() commits+fsyncs individually — the
+  Phase 6 crash-recovery durability contract); runtime event flow
+  is burst-scale so this is the correct default, and bulk paths
+  must batch (pattern documented in the benchmark module).
+
+### Changed
+- pyproject addopts now exclude `benchmark`-marked tests from the
+  default run (`-m 'not benchmark'`); marker registered under
+  --strict-markers.
+
 ## [Unreleased — 1.0.0.dev15]
 
 ### Added

@@ -41,6 +41,7 @@ MODULES = [
     "xenopus.persistence.tasks",
     "xenopus.persistence.approvals_store",
     "xenopus.tools.recycle",
+    "xenopus.tools.terminal",
     "xenopus.runtime.killswitch",
     "xenopus.runtime.recovery",
     "xenopus.runtime.agent",

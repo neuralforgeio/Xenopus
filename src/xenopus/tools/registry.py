@@ -15,6 +15,7 @@ from xenopus.tools.files import (
     file_read,
     file_write,
 )
+from xenopus.tools.terminal import TERMINAL_TOOL_CONTRACTS, terminal_run
 
 
 class ToolQuarantineError(Exception):
@@ -141,4 +142,22 @@ class ToolRegistry:
                     failure_modes=tuple(meta["failure_modes"]),
                 ),
                 handlers[name],
+            )
+
+    def register_builtin_terminal(self) -> None:
+        """Register the terminal tool (ADR-029; allow-listed, cwd-bounded)."""
+        for name, meta in TERMINAL_TOOL_CONTRACTS.items():
+            self.register(
+                ToolContract(
+                    name=name,
+                    description=str(meta["description"]),
+                    input_schema={"type": "object"},
+                    side_effects=str(meta["side_effects"]),
+                    required_permissions=frozenset(str(p) for p in meta["permissions"]),
+                    risk=RiskLevel(int(meta["risk"])),
+                    timeout_seconds=600.0,
+                    idempotent=bool(meta["idempotent"]),
+                    failure_modes=tuple(meta["failure_modes"]),
+                ),
+                terminal_run,
             )

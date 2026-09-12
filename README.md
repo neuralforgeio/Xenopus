@@ -117,6 +117,7 @@ before merge).
 | Verified pool bound: MAX_CONCURRENT_AGENTS=4 matches the 4 physical cores — 8-way shows zero gain (GIL + core alignment, measured) | VERIFIED (Phase 17) |
 | Verified journal envelope: batched ~254k appends/s, 2.2ms reads at 20k rows, 3.9 MB WAL; unbatched appends fsync per event (durability contract) — bulk paths must batch | VERIFIED (Phase 17) |
 | Session search: FTS5 prefix/token matching over titles (indexed, injection-safe token quoting) with automatic LIKE fallback — ADR-028 | IMPLEMENTED (Phase 18) |
+| Terminal tool (ADR-029): allow-listed (node/npm/npx/git) argv-form subprocess execution — cwd-bounded, timeout-enforced, output-capped, env-sanitized; external effects route through the approval path | IMPLEMENTED (post-1.0.0) |
 | Self-improvement / self-repair loops | IMPLEMENTED (Phase 15) |
 | Fine-tuning pipeline | RESEARCH |
 
@@ -201,7 +202,7 @@ lacks a published GitHub Release.
 
 ## Testing
 
-488 tests cover package imports, configuration, bootstrap, CLI, the
+508 tests cover package imports, configuration, bootstrap, CLI, the
 agent FSM (Hypothesis property invariants), goal lifecycle, plan DAG
 validation, the event journal, budget/retry primitives, the provider
 stack (mock-transport HTTP, no network), registry/health/router
@@ -275,7 +276,7 @@ src/xenopus/
 ## Version
 
 - Source of truth: [`pyproject.toml`](pyproject.toml) (ADR-002).
-- Current release: **1.0.0**.
+- Current release: **1.0.0**; development: `1.1.0.dev0` (terminal tool).
 - Policy: Semantic Versioning — no digit rollover at 10.
 
 ## Changelog

@@ -4,6 +4,60 @@ All significant changes to Xenopus are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [Unreleased — 1.1.0.dev0]
+
+### Added
+- Terminal tool (ADR-029): the agent can now genuinely build
+  software. `terminal_run` executes allow-listed commands
+  (node/npm/npx/git) in argv form — no shell, no string parsing,
+  so the injection surface is structural zero. Bounds: cwd
+  resolved and contained against the workspace PathPolicy (same
+  object the file tools use), hard timeout (default 600s, bounded
+  1-600), merged stdout+stderr capped at 64KB with a truncation
+  marker, and a rebuilt-minimal child environment (PATH/SYSTEM/
+  TEMP family only) that strips every XENOPUS_* and secret-shaped
+  variable — a child process can never read runtime secrets
+  (test-proven against a live node child printing its own env).
+- Gateway risk integration: contracts declaring `external:` side
+  effects now map to external_side_effects=True with MEDIUM blast
+  radius in the gateway's dynamic factors, so terminal commands
+  route through the APPROVAL path by the risk table (score 5 >=
+  threshold 4) — never AUTO. The full human-in-the-loop flow was
+  proven live: permission rule -> approval_required -> grant ->
+  hash-bound resolve -> execution.
+- 20 terminal-tool tests: allow-list (unknown/real-but-unlisted/
+  path-like refused), cwd containment (escape refused, missing
+  refused, root allowed), output truncation at the cap, timeout
+  kill + argument bounds, exit-code reporting, env hygiene
+  (XENOPUS_* stripped; live child leak check), permission DENY
+  without rules, approval-required + grant + execute through the
+  real gateway, contract shape.
+- Supervised live E2E harness (scripts/live_e2e_website.py): the
+  full stack — GoalManager -> PlanEngine -> Orchestrator ->
+  AgentPool -> live provider (tokenrouter, z-ai/glm-5.3-free) ->
+  Executor -> gateway -> terminal_run — plans and builds a real
+  Next.js project in ~/Documents via npx, every external call
+  granted through the real approval ledger while the operator
+  supervises.
+
+### Verified (live E2E, 2026-09-11, supervised)
+- The model composed the scaffold command itself: `npx
+  create-next-app@latest my-nextjs-site --ts --no-eslint
+  --no-tailwind --src-dir --app --import-alias @/* --yes` — exit 0,
+  Next.js 16.3.4 / React 19.2.8 installed.
+- A first verify attempt failed honestly (the model double-pathed
+  --prefix while already inside the project: ENOENT, reported,
+  not retried blindly); the corrected re-run planned `npm run
+  build` — exit 0, full production build artifacts (BUILD_ID,
+  manifests, server bundle).
+- The built site served HTTP 200 (10.4KB rendered page) on
+  loopback before shutdown. terminal_run reliability recorded 6
+  invocations through the real ReliabilityStore.
+- Tokenrouter adapter compatibility confirmed end-to-end
+  (reasoning-bearing GLM responses parse cleanly when the output
+  budget accommodates reasoning; the adapter's null-content
+  SchemaError behaved exactly per contract during diagnosis).
+
 ## [1.0.0] — 2026-09-11
 
 First public release. Everything below shipped through 19 gated,

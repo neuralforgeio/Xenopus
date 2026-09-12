@@ -111,15 +111,19 @@ class ToolGateway:
             )
 
         # Dynamic risk: destructive deletes are reversible when a recycle
-        # bin is attached (ADR-008); irreversible without one.
+        # bin is attached (ADR-008); irreversible without one. External
+        # effects (subprocess/network) come from the contract's declared
+        # side effects (ADR-029 terminal).
         destructive = "destructive" in contract.side_effects
         reversible = not destructive or self._recycle_bin is not None
+        external = contract.side_effects.startswith("external")
+        blast = RiskLevel.MEDIUM if external else RiskLevel.LOW
         factors = RiskFactors(
             destructiveness=destructive,
-            external_side_effects=False,
+            external_side_effects=external,
             reversible=reversible,
             sensitive_data=False,
-            blast_radius=RiskLevel.LOW,
+            blast_radius=blast,
         )
         risk_outcome = self._risk.evaluate(factors, contract.risk)
 
@@ -164,7 +168,9 @@ class ToolGateway:
             return ToolResult.failure("risk_denied", f"{contract.name!r} exceeds the risk budget")
 
         wired_arguments = dict(arguments)
-        if path_policy is not None and contract.name.startswith("file_"):
+        if path_policy is not None and (
+            contract.name.startswith("file_") or contract.name == "terminal_run"
+        ):
             wired_arguments["__path_policy__"] = path_policy
         if contract.name == "file_delete" and self._recycle_bin is not None:
             wired_arguments["__recycle_bin__"] = self._recycle_bin
